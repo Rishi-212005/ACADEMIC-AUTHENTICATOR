@@ -303,8 +303,8 @@ The system supports multiple OCR engines. Configure in Python scripts:
 ## 📞 Support
 
 For support, contact:
-- Email: nyaswanth81@gmail.com
-- Project Repository: [https://github.com/yaswanth-81/academic-authenticator.git]
+- Email: sairishikumar.2005@gmail.com
+- Project Repository: [https://github.com/Rishi-212005/ACADEMIC-AUTHENTICATOR.git]
 
 ## 🗺️ Roadmap
 
