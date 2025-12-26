@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academia Authenticator | Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        primaryDark: '#1e40af',
+                        secondary: '#0ea5e9',
+                        accent: '#6366f1',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(120deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+        .login-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            width: 100%;
+            max-width: 440px;
+            padding: 40px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 24px;
+            margin: 0 auto 15px;
+        }
+        .logo-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        .logo-text p {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .user-type-selector {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 25px;
+        }
+        .user-type {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .user-type.active {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .user-type i {
+            margin-right: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+        .form-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-container input {
+            margin-right: 8px;
+            accent-color: #2563eb;
+        }
+        .forgot-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+        .otp-inputs {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .otp-input {
+            width: 45px;
+            height: 45px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .otp-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 25px 0;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .divider::before {
+            margin-right: 10px;
+        }
+        .divider::after {
+            margin-left: 10px;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .signup-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .slide-down {
+            animation: slideDown 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <div class="logo-icon">AA</div>
+            <div class="logo-text">
+                <h1>Academia Authenticator</h1>
+                <p>Verify academic certificates quickly & securely</p>
+            </div>
+        </div>
+        
+        <h2 class="text-xl font-semibold text-gray-800 mb-2">Login to your account</h2>
+        <p class="text-gray-600 text-sm mb-6">Welcome back! Please enter your details to continue.</p>
+        
+        <div class="user-type-selector">
+            <div class="user-type active" id="organizationBtn">
+                <i class="fas fa-building"></i> Organization
+            </div>
+            <div class="user-type" id="instituteBtn">
+                <i class="fas fa-school"></i> Institute
+            </div>
+        </div>
+        
+        <form id="loginForm">
+            <input type="hidden" name="user_type" id="user_type" value="organization">
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" class="form-input" placeholder="Enter your email" value="nyaswanth81@gmail.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+            </div>
+            
+            <div class="options-row">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="remember" checked>
+                    <label for="remember" class="text-sm text-gray-700">Remember me</label>
+                </div>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="btn-primary">
+                Sign in
+            </button>
+        </form>
+        
+        <div id="otpMessage" class="hidden mt-6 p-4 bg-blue-50 text-blue-700 rounded-lg text-center text-sm">
+            <i class="fas fa-envelope-circle-check text-lg mb-1"></i>
+            <p>An OTP has been sent to your registered email. Please verify your account.</p>
+        </div>
+        
+        <div id="otpSection" class="hidden mt-6 slide-down">
+            <div class="divider">Enter verification code</div>
+            
+            <div class="otp-inputs">
+                <input type="text" maxlength="1" class="otp-input" onkeyup="moveToNext(this, 1)">
+                <input type="text" maxlength="1" class="otp-input" onkeyup="moveToNext(this, 2)">
+                <input type="text" maxlength="1" class="otp-input" onkeyup="moveToNext(this, 3)">
+                <input type="text" maxlength="1" class="otp-input" onkeyup="moveToNext(this, 4)">
+                <input type="text" maxlength="1" class="otp-input" onkeyup="moveToNext(this, 5)">
+                <input type="text" maxlength="1" class="otp-input" onkeyup="moveToNext(this, 6)">
+            </div>
+            
+            <button id="verifyOtpBtn" class="btn-primary">
+                Verify OTP
+            </button>
+        </div>
+        
+        <div class="signup-link">
+            Don't have an account? <a href="register.php">Sign up</a>
+            <a href="index.html">| <-Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // User type selection
+        const organizationBtn = document.getElementById('organizationBtn');
+        const instituteBtn = document.getElementById('instituteBtn');
+        
+        organizationBtn.addEventListener('click', () => {
+            organizationBtn.classList.add('active');
+            instituteBtn.classList.remove('active');
+        });
+        
+        instituteBtn.addEventListener('click', () => {
+            instituteBtn.classList.add('active');
+            organizationBtn.classList.remove('active');
+        });
+
+        // Form submission
+        const loginForm = document.getElementById('loginForm');
+        const otpMessage = document.getElementById('otpMessage');
+        const otpSection = document.getElementById('otpSection');
+        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+        
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show OTP message
+            otpMessage.classList.remove('hidden');
+            otpMessage.classList.add('fade-in');
+            
+            // After 3 seconds, show OTP section
+            setTimeout(() => {
+                otpMessage.classList.add('hidden');
+                otpSection.classList.remove('hidden');
+                otpSection.classList.add('slide-down');
+            }, 3000);
+        });
+        
+        // OTP verification
+        verifyOtpBtn.addEventListener('click', function() {
+            // Here you would normally verify the OTP
+            // For demo purposes, we'll just show an alert and redirect
+            alert('OTP verified successfully! Redirecting...');
+            // window.location.href = "dashboard.html"; // Redirect would happen here
+        });
+        
+        // OTP input navigation
+        function moveToNext(field, next) {
+            if (field.value.length >= field.maxLength) {
+                const nextField = document.querySelectorAll('.otp-input')[next];
+                if (nextField) nextField.focus();
+            }
+        }
+    </script>
+</body>
+</html>

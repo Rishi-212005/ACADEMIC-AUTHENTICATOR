@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Authentication Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #3498db 0%, #1a5276 100%);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .form-container {
+            padding: 30px;
+        }
+        
+        .form-title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: #34495e;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .remember {
+            display: flex;
+            align-items: center;
+        }
+        
+        .remember input {
+            margin-right: 8px;
+        }
+        
+        .forgot-link {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3498db 0%, #1a5276 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .otp-container {
+            display: none;
+            text-align: center;
+        }
+        
+        .otp-inputs {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        
+        .otp-inputs input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        
+        .otp-inputs input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .resend {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .resend a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success-message {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .admin-info {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 13px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Admin Authentication Portal</h1>
+            <p>Secure access for authorized personnel only</p>
+        </div>
+        
+        <div class="form-container">
+            <h2 class="form-title">Login to Admin Dashboard</h2>
+            
+            <div id="loginForm">
+                <div class="input-group">
+                    <label for="adminEmail">Admin Email</label>
+                    <input type="email" id="adminEmail" placeholder="admin@example.com" value="admin@academia.edu">
+                </div>
+                
+                <div class="input-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter your password" value="•••••••">
+                </div>
+                
+                <div class="checkbox-group">
+                    <div class="remember">
+                        <input type="checkbox" id="rememberMe" checked>
+                        <label for="rememberMe">Remember me</label>
+                    </div>
+                    <a href="#" class="forgot-link" id="forgotPassword">Forgot Password?</a>
+                </div>
+                
+                <button class="btn" id="loginBtn">Sign in as Admin</button>
+                <a href="index.html">Back to Home</a>
+                
+                <div id="loginError" class="error-message">
+                    Invalid credentials. Please try again.
+                </div>
+            </div>
+            
+            <div id="otpForm" class="otp-container">
+                <h2 class="form-title">Enter Verification Code</h2>
+                <p>We've sent a 6-digit code to your registered email</p>
+                
+                <div class="otp-inputs">
+                    <input type="text" maxlength="1" id="digit1" oninput="moveToNext(1)">
+                    <input type="text" maxlength="1" id="digit2" oninput="moveToNext(2)">
+                    <input type="text" maxlength="1" id="digit3" oninput="moveToNext(3)">
+                    <input type="text" maxlength="1" id="digit4" oninput="moveToNext(4)">
+                    <input type="text" maxlength="1" id="digit5" oninput="moveToNext(5)">
+                    <input type="text" maxlength="1" id="digit6" oninput="moveToNext(6)">
+                </div>
+                
+                <div id="otpError" class="error-message">
+                    Invalid code. Please try again.
+                </div>
+                
+                <div id="otpSuccess" class="success-message">
+                    Verification successful! Redirecting...
+                </div>
+                
+                <button class="btn" id="verifyBtn">Verify OTP</button>
+                
+                <div class="resend">
+                    Didn't receive the code? <a href="#">Resend code</a>
+                </div>
+            </div>
+            
+            <div class="admin-info">
+                <i class="fas fa-shield-alt"></i> Secure admin portal v2.4
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const otpForm = document.getElementById('otpForm');
+            const loginBtn = document.getElementById('loginBtn');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const loginError = document.getElementById('loginError');
+            const otpError = document.getElementById('otpError');
+            const otpSuccess = document.getElementById('otpSuccess');
+            const forgotPassword = document.getElementById('forgotPassword');
+            
+            // Default OTP for demonstration
+            const correctOTP = '123456';
+            
+            // Handle login
+            loginBtn.addEventListener('click', function() {
+                const email = document.getElementById('adminEmail').value;
+                const password = document.getElementById('adminPassword').value;
+                
+                // Simple validation
+                if (email && password) {
+                    // In a real application, you would verify credentials with a server
+                    // For demo purposes, we'll just show the OTP form
+                    loginError.style.display = 'none';
+                    loginForm.style.display = 'none';
+                    otpForm.style.display = 'block';
+                } else {
+                    loginError.style.display = 'block';
+                }
+            });
+            
+            // Handle OTP verification
+            verifyBtn.addEventListener('click', function() {
+                const digit1 = document.getElementById('digit1').value;
+                const digit2 = document.getElementById('digit2').value;
+                const digit3 = document.getElementById('digit3').value;
+                const digit4 = document.getElementById('digit4').value;
+                const digit5 = document.getElementById('digit5').value;
+                const digit6 = document.getElementById('digit6').value;
+                
+                const enteredOTP = digit1 + digit2 + digit3 + digit4 + digit5 + digit6;
+                
+                if (enteredOTP === correctOTP) {
+                    otpError.style.display = 'none';
+                    otpSuccess.style.display = 'block';
+                    
+                    // Simulate redirect to admin page
+                    setTimeout(function() {
+                        alert('Login successful! Redirecting to admin dashboard...');
+                        // In a real application: window.location.href = 'admin-dashboard.html';
+                    }, 1500);
+                } else {
+                    otpError.style.display = 'block';
+                }
+            });
+            
+            // Forgot password handler
+            forgotPassword.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Password reset instructions have been sent to your registered email.');
+            });
+        });
+        
+        // Function to auto-focus next input field
+        function moveToNext(current) {
+            if (document.getElementById('digit' + current).value.length === 1) {
+                if (current < 6) {
+                    document.getElementById('digit' + (current + 1)).focus();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

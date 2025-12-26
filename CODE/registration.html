@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academia Authenticator - Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --light-gray: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-gray);
+            color: #334155;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.875rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 1.05rem;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        
+        .password-strength {
+            height: 6px;
+            border-radius: 3px;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .strength-weak {
+            background-color: var(--danger-color);
+            width: 33%;
+        }
+        
+        .strength-fair {
+            background-color: var(--warning-color);
+            width: 66%;
+        }
+        
+        .strength-strong {
+            background-color: var(--success-color);
+            width: 100%;
+        }
+        
+        .tab-button {
+            padding: 1.25rem 2.5rem;
+            font-weight: 500;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            text-align: center;
+        }
+        
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        
+        .tab-button.inactive {
+            color: var(--secondary-color);
+            border-bottom-color: #e2e8f0;
+        }
+        
+        .tab-button.inactive:hover {
+            color: #475569;
+            background-color: rgba(37, 99, 235, 0.02);
+        }
+        
+        .section-heading {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.875rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.625rem;
+            color: #374151;
+            font-size: 1.05rem;
+        }
+        
+        .required-field::after {
+            content: "*";
+            color: var(--danger-color);
+            margin-left: 0.25rem;
+        }
+        
+        .file-upload {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.2s;
+            background-color: #f9fafb;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary-color);
+            background-color: #f0f5ff;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .terms-text {
+            font-size: 1rem;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        
+        .header-logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-container {
+            min-height: 950px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center py-10 px-4">
+    <div class="container">
+        <div class="text-center mb-10">
+            <div class="header-logo">AAA</div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Academia Authenticator</h1>
+            <p class="text-gray-600 text-lg">Verify academic certificates quickly & securely</p>
+        </div>
+        
+        <div class="flex justify-center mb-8">
+            <div class="flex space-x-0 bg-gray-100 rounded-xl p-1 shadow-inner">
+                <div class="tab-button active rounded-l-xl" id="org-tab">
+                    <i class="fas fa-building mr-2"></i>Organization
+                </div>
+                <div class="tab-button inactive rounded-r-xl" id="inst-tab">
+                    <i class="fas fa-school mr-2"></i>Institution
+                </div>
+            </div>
+        </div>
+        
+        <!-- Organization Registration Form -->
+        <div class="card form-container" id="org-form">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-2">Organization Registration</h2>
+            <p class="text-gray-600 mb-8 text-lg">Register your organization to verify academic certificates</p>
+            
+            <form id="organization-form">
+                <div class="mb-10">
+                    <h3 class="section-heading">Organization Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label for="org-name" class="form-label required-field">Organization Name</label>
+                            <input type="text" id="org-name" class="form-input" required placeholder="Enter organization name">
+                        </div>
+                        
+                        <div>
+                            <label for="org-type" class="form-label required-field">Organization Type</label>
+                            <select id="org-type" class="form-input" required>
+                                <option value="">Select Type</option>
+                                <option value="government">Government Dept</option>
+                                <option value="employer">Employer</option>
+                                <option value="psu">PSU</option>
+                                <option value="private">Private Org</option>
+                            </select>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="org-website" class="form-label">Official Website</label>
+                            <input type="url" id="org-website" class="form-input" placeholder="https://yourorganization.com">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-10">
+                    <h3 class="section-heading">Contact Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label for="org-email" class="form-label required-field">Official Email</label>
+                            <input type="email" id="org-email" class="form-input" required placeholder="email@organization.com">
+                        </div>
+                        
+                        <div>
+                            <label for="org-phone" class="form-label required-field">Phone Number</label>
+                            <input type="tel" id="org-phone" class="form-input" required placeholder="+1 (555) 123-4567">
+                        </div>
+                    </div>
+                </div>
+<div class="mb-10">
+    <h3 class="section-heading">Address Details</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+            <label for="address-line1" class="form-label required-field">Address Line 1</label>
+            <input type="text" id="address-line1" class="form-input" required placeholder="Building / Street / Area">
+        </div>
+        
+        <div>
+            <label for="address-line2" class="form-label">Address Line 2</label>
+            <input type="text" id="address-line2" class="form-input" placeholder="Landmark / Block / Additional info">
+        </div>
+        
+        <div>
+            <label for="city" class="form-label required-field">City / Town</label>
+            <input type="text" id="city" class="form-input" required placeholder="Enter city or town">
+        </div>
+        
+        <div>
+            <label for="state" class="form-label required-field">State / UT</label>
+            <select id="state" class="form-input" required>
+                <option value="">Select State / UT</option>
+                <option value="jharkhand">Jharkhand</option>
+            
+            </select>
+        </div>
+        
+        <div>
+            <label for="district" class="form-label">District</label>
+            <input type="text" id="district" class="form-input" placeholder="Enter district">
+        </div>
+        
+        <div>
+            <label for="pincode" class="form-label required-field">Pincode</label>
+            <input type="number" id="pincode" class="form-input" required placeholder="6-digit pincode" pattern="[0-9]{6}">
+        </div>
+        
+        <div>
+            <label for="country" class="form-label required-field">Country</label>
+            <input type="text" id="country" class="form-input" value="India" required>
+        </div>
+    </div>
+</div>
+
+                
+                <div class="mb-10">
+                    <h3 class="section-heading">Account Credentials</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label for="org-password" class="form-label required-field">Password</label>
+                            <input type="password" id="org-password" class="form-input" required placeholder="Create a secure password">
+                            <div class="password-strength" id="org-password-strength"></div>
+                            <p class="text-sm text-gray-500 mt-3" id="org-password-text">Password strength: None</p>
+                        </div>
+                        
+                        <div>
+                            <label for="org-confirm-password" class="form-label required-field">Confirm Password</label>
+                            <input type="password" id="org-confirm-password" class="form-input" required placeholder="Confirm your password">
+                            <p class="text-sm text-red-500 mt-3 hidden" id="org-password-match">Passwords do not match</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-10">
+                    <h3 class="section-heading">Proof & Documents</h3>
+                    
+                    <div class="file-upload">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600 mb-2 text-lg">Upload Authorization Letter / Official ID / Government Order</p>
+                        <p class="text-gray-500 mb-4">PDF, JPG, or PNG (Max 5MB)</p>
+                        <label for="org-file" class="cursor-pointer inline-block bg-white text-gray-700 py-2.5 px-5 border border-gray-300 rounded-lg text-base hover:bg-gray-50 shadow-sm">
+                            <i class="fas fa-file-upload mr-2"></i>Select File
+                        </label>
+                        <input type="file" id="org-file" class="hidden">
+                        <p id="org-file-name" class="text-gray-600 mt-3"></p>
+                    </div>
+                </div>
+                
+                <div class="mb-10">
+                    <h3 class="section-heading">Security & Consent</h3>
+                    
+                    <div class="flex items-start">
+                        <input type="checkbox" id="org-terms" class="mt-1.5 mr-4 h-5 w-5" required>
+                        <label for="org-terms" class="terms-text">I accept the Terms & Conditions and acknowledge the Privacy Policy. I certify that all information provided is accurate and I am authorized to represent this organization.</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary py-3.5 mt-4 text-lg">
+                    <i class="fas fa-user-plus mr-2"></i>Register Organization
+                </button>
+            </form>
+            
+            <p class="text-center text-gray-600 mt-8 text-base">
+                Already have an account? <a href="login.php" class="text-blue-600 hover:underline font-medium">Sign in</a>
+                <a href="index.html">| <-Back to Home</a>
+            </p>
+        </div>
+        
+        <!-- Institution Registration Form -->
+        <div class="card form-container hidden" id="inst-form">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-2">Institution Registration</h2>
+            <p class="text-gray-600 mb-8 text-lg">Register your educational institution to issue verifiable certificates</p>
+            
+            <form id="institution-form">
+                <div class="mb-10">
+                    <h3 class="section-heading">Institution Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label for="inst-name" class="form-label required-field">Institution Name</label>
+                            <input type="text" id="inst-name" class="form-input" required placeholder="Enter institution name">
+                        </div>
+                        
+                        <div>
+                            <label for="inst-type" class="form-label required-field">Institution Type</label>
+                            <select id="inst-type" class="form-input" required>
+                                <option value="">Select Type</option>
+                                <option value="university">University</option>
+                                <option value="college">College</option>
+                                <option value="polytechnic">Polytechnic</option>
+                                <option value="school">School</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="inst-code" class="form-label required-field">Institution Code</label>
+                            <input type="text" id="inst-code" class="form-input" required placeholder="e.g., U12345">
+                        </div>
+                        
+                        <div>
+                            <label for="inst-university" class="form-label">Affiliating University</label>
+                            <input type="text" id="inst-university" class="form-input" placeholder="If applicable">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="inst-website" class="form-label">Official Website</label>
+                            <input type="url" id="inst-website" class="form-input" placeholder="https://yourinstitution.edu">
+                        </div>
+                    </div>
+                </div>
+<div class="mb-10">
+    <h3 class="section-heading">Address Details</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+            <label for="address-line1" class="form-label required-field">Address Line 1</label>
+            <input type="text" id="address-line1" class="form-input" required placeholder="Building / Street / Area">
+        </div>
+        
+        <div>
+            <label for="address-line2" class="form-label">Address Line 2</label>
+            <input type="text" id="address-line2" class="form-input" placeholder="Landmark / Block / Additional info">
+        </div>
+        
+        <div>
+            <label for="city" class="form-label required-field">City / Town</label>
+            <input type="text" id="city" class="form-input" required placeholder="Enter city or town">
+        </div>
+        
+        <div>
+            <label for="state" class="form-label required-field">State / UT</label>
+            <select id="state" class="form-input" required>
+                <option value="">Select State / UT</option>
+                <option value="jharkhand">Jharkhand</option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="district" class="form-label">District</label>
+            <input type="text" id="district" class="form-input" placeholder="Enter district">
+        </div>
+        
+        <div>
+            <label for="pincode" class="form-label required-field">Pincode</label>
+            <input type="number" id="pincode" class="form-input" required placeholder="6-digit pincode" pattern="[0-9]{6}">
+        </div>
+        
+        <div>
+            <label for="country" class="form-label required-field">Country</label>
+            <input type="text" id="country" class="form-input" value="India" required>
+        </div>
+    </div>
+</div>
+
+                
+                <div class="mb-10">
+                    <h3 class="section-heading">Contact Person Details</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label for="inst-email" class="form-label required-field">Official Email</label>
+                            <input type="email" id="inst-email" class="form-input" required placeholder="name@institution.edu">
+                        </div>
+                        
+                        <div>
+                            <label for="inst-phone" class="form-label required-field">Phone Number</label>
+                            <input type="tel" id="inst-phone" class="form-input" required placeholder="+1 (555) 123-4567">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-10">
+                    <h3 class="section-heading">Account Credentials</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label for="inst-password" class="form-label required-field">Password</label>
+                            <input type="password" id="inst-password" class="form-input" required placeholder="Create a secure password">
+                            <div class="password-strength" id="inst-password-strength"></div>
+                            <p class="text-sm text-gray-500 mt-3" id="inst-password-text">Password strength: None</p>
+                        </div>
+                        
+                        <div>
+                            <label for="inst-confirm-password" class="form-label required-field">Confirm Password</label>
+                            <input type="password" id="inst-confirm-password" class="form-input" required placeholder="Confirm your password">
+                            <p class="text-sm text-red-500 mt-3 hidden" id="inst-password-match">Passwords do not match</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-10">
+                    <h3 class="section-heading">Proof & Documents</h3>
+                    
+                    <div class="file-upload">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600 mb-2 text-lg">Upload Accreditation / Approval Document / Authorization Letter</p>
+                        <p class="text-gray-500 mb-4">PDF, JPG, or PNG (Max 5MB)</p>
+                        <label for="inst-file" class="cursor-pointer inline-block bg-white text-gray-700 py-2.5 px-5 border border-gray-300 rounded-lg text-base hover:bg-gray-50 shadow-sm">
+                            <i class="fas fa-file-upload mr-2"></i>Select File
+                        </label>
+                        <input type="file" id="inst-file" class="hidden">
+                        <p id="inst-file-name" class="text-gray-600 mt-3"></p>
+                    </div>
+                </div>
+                
+                <div class="mb-10">
+                    <h3 class="section-heading">Security & Consent</h3>
+                    
+                    <div class="flex items-start">
+                        <input type="checkbox" id="inst-terms" class="mt-1.5 mr-4 h-5 w-5" required>
+                        <label for="inst-terms" class="terms-text">I accept the Terms & Conditions and acknowledge the Privacy Policy. I certify that all information provided is accurate and I am authorized to represent this institution.</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary py-3.5 mt-4 text-lg">
+                    <i class="fas fa-user-plus mr-2"></i>Register Institution
+                </button>
+            </form>
+            
+            <p class="text-center text-gray-600 mt-8 text-base">
+                Already have an account? <a href="#" class="text-blue-600 hover:underline font-medium">Sign in</a>
+                <a href="index.html">| <-Back to Home</a>
+            </p>          
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.getElementById('org-tab').addEventListener('click', function() {
+            document.getElementById('org-form').classList.remove('hidden');
+            document.getElementById('inst-form').classList.add('hidden');
+            document.getElementById('org-tab').classList.remove('inactive');
+            document.getElementById('org-tab').classList.add('active');
+            document.getElementById('inst-tab').classList.remove('active');
+            document.getElementById('inst-tab').classList.add('inactive');
+        });
+        
+        document.getElementById('inst-tab').addEventListener('click', function() {
+            document.getElementById('inst-form').classList.remove('hidden');
+            document.getElementById('org-form').classList.add('hidden');
+            document.getElementById('inst-tab').classList.remove('inactive');
+            document.getElementById('inst-tab').classList.add('active');
+            document.getElementById('org-tab').classList.remove('active');
+            document.getElementById('org-tab').classList.add('inactive');
+        });
+function validateAddress(formId) {
+    const form = document.getElementById(formId);
+    const line1 = form.querySelector("#address-line1");
+    const city = form.querySelector("#city");
+    const state = form.querySelector("#state");
+    const district = form.querySelector("#district");
+    const pincode = form.querySelector("#pincode");
+    const country = form.querySelector("#country");
+
+    // Address Line 1 check
+    if (line1.value.trim().length < 5) {
+        alert("Address Line 1 must be at least 5 characters.");
+        line1.focus();
+        return false;
+    }
+
+    // City validation
+    if (!/^[A-Za-z\s]+$/.test(city.value.trim())) {
+        alert("City must contain only letters.");
+        city.focus();
+        return false;
+    }
+
+    // State validation
+    if (state.value === "") {
+        alert("Please select a State / UT.");
+        state.focus();
+        return false;
+    }
+
+    // District validation (if filled)
+    if (district.value.trim() && !/^[A-Za-z\s]+$/.test(district.value.trim())) {
+        alert("District must contain only letters.");
+        district.focus();
+        return false;
+    }
+
+    // Pincode validation
+    if (!/^\d{6}$/.test(pincode.value.trim())) {
+        alert("Please enter a valid 6-digit Pincode.");
+        pincode.focus();
+        return false;
+    }
+
+    // Country validation
+    if (country.value.trim() === "") {
+        alert("Country cannot be empty.");
+        country.focus();
+        return false;
+    }
+
+    return true;
+}
+
+// Hook this into your form submission
+document.getElementById('organization-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (validateAddress('organization-form')) {
+        alert('Organization registration submitted!');
+    }
+});
+
+document.getElementById('institution-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (validateAddress('institution-form')) {
+        alert('Institution registration submitted!');
+    }
+});
+
+        
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            // Define strength criteria
+            let strength = 0;
+            
+            // Length check
+            if (password.length >= 8) strength++;
+            
+            // Contains lowercase, uppercase, numbers, special characters
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            // Determine strength level
+            if (strength <= 2) {
+                return { level: "weak", strength: 1 };
+            } else if (strength <= 4) {
+                return { level: "fair", strength: 2 };
+            } else {
+                return { level: "strong", strength: 3 };
+            }
+        }
+        
+        // Setup password strength indicators
+        function setupPasswordStrengthIndicator(inputId, strengthBarId, textId) {
+            const passwordInput = document.getElementById(inputId);
+            const strengthBar = document.getElementById(strengthBarId);
+            const strengthText = document.getElementById(textId);
+            
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                
+                if (password.length === 0) {
+                    strengthBar.className = 'password-strength';
+                    strengthBar.style.width = '0%';
+                    strengthText.textContent = 'Password strength: None';
+                    strengthText.className = 'text-sm text-gray-500 mt-3';
+                    return;
+                }
+                
+                const result = checkPasswordStrength(password);
+                
+                strengthBar.className = 'password-strength';
+                
+                switch(result.strength) {
+                    case 1:
+                        strengthBar.classList.add('strength-weak');
+                        strengthText.textContent = 'Password strength: Weak';
+                        strengthText.className = 'text-sm text-red-500 mt-3';
+                        break;
+                    case 2:
+                        strengthBar.classList.add('strength-fair');
+                        strengthText.textContent = 'Password strength: Fair';
+                        strengthText.className = 'text-sm text-yellow-500 mt-3';
+                        break;
+                    case 3:
+                        strengthBar.classList.add('strength-strong');
+                        strengthText.textContent = 'Password strength: Strong';
+                        strengthText.className = 'text-sm text-green-500 mt-3';
+                        break;
+                }
+            });
+        }
+        
+        // Setup password confirmation check
+        function setupPasswordConfirmation(passwordId, confirmId, messageId) {
+            const passwordInput = document.getElementById(passwordId);
+            const confirmInput = document.getElementById(confirmId);
+            const message = document.getElementById(messageId);
+            
+            function checkMatch() {
+                if (passwordInput.value !== confirmInput.value && confirmInput.value.length > 0) {
+                    message.classList.remove('hidden');
+                } else {
+                    message.classList.add('hidden');
+                }
+            }
+            
+            passwordInput.addEventListener('input', checkMatch);
+            confirmInput.addEventListener('input', checkMatch);
+        }
+        
+        // File upload handlers
+        function setupFileUpload(inputId, fileNameId) {
+            const fileInput = document.getElementById(inputId);
+            const fileName = document.getElementById(fileNameId);
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    fileName.textContent = this.files[0].name;
+                } else {
+                    fileName.textContent = '';
+                }
+            });
+        }
+        
+        // Initialize all password strength indicators
+        setupPasswordStrengthIndicator('org-password', 'org-password-strength', 'org-password-text');
+        setupPasswordStrengthIndicator('inst-password', 'inst-password-strength', 'inst-password-text');
+        
+        // Initialize password confirmation checks
+        setupPasswordConfirmation('org-password', 'org-confirm-password', 'org-password-match');
+        setupPasswordConfirmation('inst-password', 'inst-confirm-password', 'inst-password-match');
+        
+        // Initialize file uploads
+        setupFileUpload('org-file', 'org-file-name');
+        setupFileUpload('inst-file', 'inst-file-name');
+        
+        // Form submission handlers
+        document.getElementById('organization-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Organization registration submitted!');
+        });
+        
+        document.getElementById('institution-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Institution registration submitted!');
+        });
+    </script>
+</body>
+</html>

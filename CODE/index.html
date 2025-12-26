@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academia Authenticator | Verify Certificates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#0ea5e9',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        accent: '#6366f1',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 50%, #6366f1 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .feature-icon {
+            background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+        }
+        .step-number {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50 text-gray-800">
+    <!-- Header/Navigation -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center text-white font-bold text-xl">AA</div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">Academia Authenticator</h1>
+                        <p class="text-sm text-gray-600">Verify academic certificates quickly & securely</p>
+                    </div>
+                </div>
+                <nav class="flex space-x-4">
+                    <a href="register.php" class="px-4 py-2 text-primary font-medium hover:bg-blue-50 rounded-lg transition">organisation/Institution-></a>
+                    <a href="login.php" class="px-6 py-2 bg-primary text-white font-medium rounded-lg hover:bg-blue-700 transition">Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6">Stop fake degrees. Verify in minutes.</h2>
+                <p class="text-xl mb-10 opacity-90">Upload a scanned certificate or image, our system extracts key fields using OCR, checks the record against a trusted registry, and gives a clear Valid / Suspect / Invalid verdict.</p>
+                <div class="flex justify-center space-x-4">
+                    <a href="login.php" class="px-8 py-3 bg-white text-primary font-bold rounded-lg hover:bg-blue-50 transition">Start Verification</a>
+                    <a href="admin_login.php" class="px-8 py-3 bg-transparent border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-primary transition">Admin Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-gray-50 p-8 rounded-xl card-hover">
+                    <div class="feature-icon w-16 h-16 rounded-xl flex items-center justify-center text-white text-2xl mb-6">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Fast verification</h3>
+                    <p class="text-gray-600">Upload a certificate — get a result in seconds (demo).</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="bg-gray-50 p-8 rounded-xl card-hover">
+                    <div class="feature-icon w-16 h-16 rounded-xl flex items-center justify-center text-white text-2xl mb-6">
+                        <i class="fas fa-fingerprint"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Fingerprint & QR</h3>
+                    <p class="text-gray-600">Every file gets a SHA256 fingerprint and a QR link to the public verification page.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="bg-gray-50 p-8 rounded-xl card-hover">
+                    <div class="feature-icon w-16 h-16 rounded-xl flex items-center justify-center text-white text-2xl mb-6">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Admin monitoring</h3>
+                    <p class="text-gray-600">State admin dashboard to view suspicious cases and blacklist offenders.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">How It Works</h2>
+            
+            <div class="max-w-4xl mx-auto">
+                <!-- Step 1 -->
+                <div class="flex flex-col md:flex-row items-center mb-12">
+                    <div class="step-number mb-4 md:mb-0 md:mr-8">1</div>
+                    <div class="bg-white p-8 rounded-xl shadow-md flex-1">
+                        <h3 class="text-xl font-bold mb-4">Upload</h3>
+                        <p class="text-gray-600">Drop the certificate PDF/image and optionally type the claimed cert ID.</p>
+                    </div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="flex flex-col md:flex-row items-center mb-12">
+                    <div class="step-number mb-4 md:mb-0 md:mr-8">2</div>
+                    <div class="bg-white p-8 rounded-xl shadow-md flex-1">
+                        <h3 class="text-xl font-bold mb-4">Extract & Match</h3>
+                        <p class="text-gray-600">OCR extracts fields, system looks up seeded trusted records and runs checks.</p>
+                    </div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="step-number mb-4 md:mb-0 md:mr-8">3</div>
+                    <div class="bg-white p-8 rounded-xl shadow-md flex-1">
+                        <h3 class="text-xl font-bold mb-4">Result</h3>
+                        <p class="text-gray-600">You get a clear Valid / Suspect / Invalid verdict, hash & QR for public verification.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Who Uses Academia Authenticator?</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-xl card-hover">
+                    <h3 class="text-xl font-bold mb-4">Employers</h3>
+                    <p class="text-gray-600">Verify candidate credentials during hiring processes to ensure qualified hires.</p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-xl card-hover">
+                    <h3 class="text-xl font-bold mb-4">Universities</h3>
+                    <p class="text-gray-600">Check authenticity of documents during admissions and transfer processes.</p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-xl card-hover">
+                    <h3 class="text-xl font-bold mb-4">Government Agencies</h3>
+                    <p class="text-gray-600">Validate documents for official purposes, grants, and public service positions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Info Cards Section -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-md card-hover">
+                    <h3 class="text-xl font-bold mb-4">What It Checks</h3>
+                    <p class="text-gray-600">Certificate ID, name, course, marks, photo & signatures (basic checks).</p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-md card-hover">
+                    <h3 class="text-xl font-bold mb-4">Data Privacy</h3>
+                    <p class="text-gray-600">Role-based access, audit logs, and encrypted storage for sensitive files.</p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-xl shadow-md card-hover">
+                    <h3 class="text-xl font-bold mb-4">Security Features</h3>
+                    <p class="text-gray-600">Blockchain integration, SHA256 hashing, and secure verification protocols.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <p class="text-gray-400">© 2025 Jharkhand Dept. of Higher & Technical Education — Prototype</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Need help? Contact: <a href="mailto:support@example.com" class="text-white hover:underline">support@example.com</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

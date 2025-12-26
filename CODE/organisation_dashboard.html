@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academia Authenticator | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        primaryDark: '#1e40af',
+                        secondary: '#0ea5e9',
+                        accent: '#6366f1',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        error: '#ef4444',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/css">
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .main-content {
+            transition: all 0.3s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .menu-item {
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover {
+            background-color: rgba(37, 99, 235, 0.1);
+        }
+        .menu-item.active {
+            background-color: rgba(37, 99, 235, 0.15);
+            color: #2563eb;
+            border-right: 3px solid #2563eb;
+        }
+        .verification-badge.valid {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        .verification-badge.suspect {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+        .verification-badge.invalid {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #2563eb;
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .page-content {
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .page-content.active {
+            display: block;
+        }
+        .dark .dark\:bg-dark {
+            background-color: #1e293b;
+        }
+        .dark .dark\:text-light {
+            color: #f8fafc;
+        }
+        .dark .dark\:bg-gray-800 {
+            background-color: #374151;
+        }
+        .dark .dark\:border-gray-700 {
+            border-color: #4b5563;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: #2563eb;
+            color: white;
+        }
+        /* Added styles to match image_ocr.php display */
+        .ocr-container { width: 100%; max-width: 1200px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); overflow: hidden; margin-top: 20px; }
+        .ocr-header { background: #2c3e50; color: white; padding: 25px 30px; display: flex; align-items: center; justify-content: space-between; }
+        .ocr-logo { display: flex; align-items: center; gap: 15px; }
+        .ocr-logo-icon { font-size: 28px; color: #3498db; }
+        .ocr-logo-text { font-weight: 600; font-size: 22px; }
+        .ocr-status { background: rgba(255, 255, 255, 0.15); padding: 8px 15px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .ocr-status-dot { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; }
+        .ocr-content { padding: 30px; }
+        .ocr-section { background: #f8f9fa; border-radius: 12px; padding: 20px; border: 1px solid #e9ecef; }
+        .ocr-section-title { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #3498db; display: flex; align-items: center; gap: 8px; }
+        .ocr-fields-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .ocr-field-item { background: white; border-radius: 8px; padding: 15px; border: 1px solid #dee2e6; transition: all 0.3s ease; }
+        .ocr-field-item:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+        .ocr-field-label { font-size: 11px; text-transform: uppercase; color: #6c757d; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .ocr-field-value { font-size: 14px; color: #2c3e50; font-weight: 500; word-break: break-word; }
+        .ocr-full-width-field { grid-column: 1 / span 2; }
+        .ocr-action-buttons { display: flex; justify-content: flex-end; gap: 15px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-dark dark:text-light">
+    <!-- Top Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50 dark:bg-gray-800">
+        <div class="flex items-center justify-between px-6 py-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-lg flex items-center justify-center text-white font-bold">AA</div>
+                <h1 class="text-xl font-semibold">Academia Authenticator</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block"></i>
+                </button>
+                
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-sm font-semibold">JD</div>
+                    <span class="text-sm font-medium">Jharkhand Dept.</span>
+                </div>
+                
+                <button id="logout-btn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium dark:bg-gray-700 dark:hover:bg-gray-600">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="flex pt-16">
+        <!-- Left Sidebar Menu -->
+        <aside class="sidebar w-64 fixed left-0 top-16 h-screen bg-white shadow-md dark:bg-gray-800">
+            <nav class="p-4">
+                <ul class="space-y-1">
+                    <li>
+                        <a href="#dashboard" class="menu-item active flex items-center space-x-3 px-4 py-3 rounded-lg">
+                            <i class="fas fa-tachometer-alt w-5"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#verify" class="menu-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                            <i class="fas fa-file-upload w-5"></i>
+                            <span>Verify Documents</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#bulk" class="menu-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                            <i class="fas fa-file-csv w-5"></i>
+                            <span>Bulk Upload</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#history" class="menu-item flex items-center space-x-3 px-4 py-3 rounded-lg">
+                            <i class="fas fa-history w-5"></i>
+                            <span>Verification History</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content ml-64 flex-1 p-6">
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page-content active">
+                <h2 class="text-2xl font-bold mb-6">Dashboard Overview</h2>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="stats-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-all dark:bg-gray-800 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm dark:text-gray-400">Total Verifications</p>
+                                <h3 id="total-verifications-count" class="text-3xl font-bold mt-1">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center dark:bg-blue-900/20">
+                                <i class="fas fa-file-alt text-blue-600 text-xl dark:text-blue-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-all dark:bg-gray-800 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm dark:text-gray-400">Valid Certificates</p>
+                                <h3 id="valid-certificates-count" class="text-3xl font-bold mt-1">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center dark:bg-green-900/20">
+                                <i class="fas fa-check-circle text-green-600 text-xl dark:text-green-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-card bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-all dark:bg-gray-800 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm dark:text-gray-400">Invalid Certificates</p>
+                                <h3 id="invalid-certificates-count" class="text-3xl font-bold mt-1">0</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center dark:bg-red-900/20">
+                                <i class="fas fa-times-circle text-red-600 text-xl dark:text-red-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chart and Recent Verifications -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Chart - Left Half -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold mb-4">Verification Status Distribution</h3>
+                        <div class="flex justify-center">
+                            <div style="width: 250px; height: 250px;">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Verifications - Right Half -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Recent Verifications</h3>
+                            <a href="#history" class="text-primary hover:text-primaryDark text-sm font-medium">View More →</a>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        <th class="text-left py-2 px-2 text-sm font-medium text-gray-600 dark:text-gray-400">Certificate ID</th>
+                                        <th class="text-left py-2 px-2 text-sm font-medium text-gray-600 dark:text-gray-400">Candidate Name</th>
+                                        <th class="text-left py-2 px-2 text-sm font-medium text-gray-600 dark:text-gray-400">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-verifications-table">
+                                    <tr>
+                                        <td colspan="3" class="text-center py-8 text-gray-500 dark:text-gray-400">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verify Documents Page -->
+            <div id="verify" class="page-content">
+                <h2 class="text-2xl font-bold mb-6">Verify Documents</h2>
+                
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- Upload Area -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold mb-4">Upload Certificate</h3>
+                        <div class="upload-area border-dashed rounded-xl p-8 text-center cursor-pointer mb-4" id="dropArea">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                            <p class="text-gray-600 dark:text-gray-400">Drag & drop your file here or click to browse</p>
+                            <p class="text-sm text-gray-500 mt-2 dark:text-gray-500">Supports: PDF, JPG, PNG (Max 10MB)</p>
+                            <input type="file" class="hidden" id="fileInput">
+                        </div>
+                        <button id="uploadButton" class="w-full bg-primary hover:bg-primaryDark text-white py-3 rounded-lg font-medium">
+                            <i class="fas fa-upload mr-2"></i>Upload File
+                        </button>
+                        
+                        <!-- Progress Bar (initially hidden) -->
+                        <div class="mt-6 hidden" id="progressSection">
+                            <div class="flex justify-between text-sm text-gray-600 mb-2 dark:text-gray-400">
+                                <span>Processing...</span>
+                                <span id="progressPercent">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                                <div id="progressBar" class="progress-bar bg-primary h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                        <!-- Results Area (initially hidden) full width below upload -->
+                        <div class="mt-8 hidden" id="resultsSection">
+                            <div class="ocr-container" style="box-shadow:none;margin-top:0;">
+                                <div class="ocr-header">
+                                    <div class="ocr-logo">
+                                        <div class="ocr-logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                                        <div class="ocr-logo-text">Academic Credentials Preview</div>
+                                    </div>
+                                    <div class="ocr-status">
+                                        <div class="ocr-status-dot"></div>
+                                        <span>Confidence: <span id="orgConfidenceValue">0%</span></span>
+                                    </div>
+                                </div>
+                                <div class="ocr-content">
+                                    <div class="ocr-section-title"><i class="fas fa-user-graduate"></i>Student Information</div>
+                                    <div id="orgStructuredBody"></div>
+                                    <div class="ocr-action-buttons">
+                                        <button id="orgCopyBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm flex items-center gap-2"><i class="fas fa-copy"></i>Copy Details</button>
+                                        <button id="orgValidateBtn" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition text-sm flex items-center gap-2"><i class="fas fa-check-circle"></i>Validate</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+
+            <!-- Bulk Upload Page -->
+            <div id="bulk" class="page-content">
+                <h2 class="text-2xl font-bold mb-6">Bulk Upload</h2>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4">Upload Certificate Records</h3>
+                    
+                    <div class="upload-area border-dashed rounded-xl p-8 text-center cursor-pointer mb-6" id="bulkUploadArea">
+                        <i class="fas fa-file-excel text-4xl text-green-500 mb-3"></i>
+                        <p class="text-gray-600 dark:text-gray-400">Drag & drop your CSV file here or click to browse</p>
+                        <p class="text-sm text-gray-500 mt-2 dark:text-gray-500">Supports: CSV (Max 10MB)</p>
+                        <input type="file" class="hidden" id="bulkFileInput" accept=".csv">
+                    </div>
+                    
+                    <div id="bulkFileName" class="mb-4 text-sm text-gray-600 dark:text-gray-400 hidden"></div>
+                    
+                    <div id="bulkUploadProgress" class="mb-4 hidden">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2 dark:text-gray-400">
+                            <span>Processing...</span>
+                            <span id="bulkProgressPercent">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                            <div id="bulkProgressBar" class="bg-primary h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="bulkUploadResult" class="mb-4 hidden"></div>
+                    
+                    <button id="bulkUploadBtn" class="w-full bg-primary hover:bg-primaryDark text-white py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fas fa-upload mr-2"></i>Start Bulk Import
+                    </button>
+                </div>
+            </div>
+
+            <!-- Verification History Page -->
+            <div id="history" class="page-content">
+                <h2 class="text-2xl font-bold mb-6">Verification History</h2>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                    <div class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                            <!-- Status Filter -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2 dark:text-gray-300">Filter by Status</label>
+                                <select id="filterStatus" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <option value="">All Status</option>
+                                    <option value="VALID">Valid</option>
+                                    <option value="INVALID">Invalid</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Score Filter Min -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2 dark:text-gray-300">Min Score</label>
+                                <input type="number" id="filterScoreMin" placeholder="0" min="0" max="100" step="0.1" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            </div>
+                            
+                            <!-- Score Filter Max -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2 dark:text-gray-300">Max Score</label>
+                                <input type="number" id="filterScoreMax" placeholder="100" min="0" max="100" step="0.1" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            </div>
+                            
+                            <!-- Date Filter -->
+                            <div>
+                                <label class="block text-sm font-medium mb-2 dark:text-gray-300">Filter by Date</label>
+                                <input type="date" id="filterDate" class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button id="applyFiltersBtn" class="px-4 py-2 bg-primary hover:bg-primaryDark text-white rounded-lg text-sm font-medium">
+                                <i class="fas fa-filter mr-2"></i>Apply Filters
+                            </button>
+                            <button id="clearFiltersBtn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium dark:bg-gray-700 dark:hover:bg-gray-600">
+                                <i class="fas fa-times mr-2"></i>Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-sm text-gray-500 border-b dark:text-gray-400 dark:border-gray-700">
+                                    <th class="pb-2">Date & Time</th>
+                                    <th class="pb-2">Certificate ID</th>
+                                    <th class="pb-2">Candidate Name</th>
+                                    <th class="pb-2">Institution</th>
+                                    <th class="pb-2">Validation Score</th>
+                                    <th class="pb-2">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="validationsTableBody">
+                                <!-- Data will be loaded here -->
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 text-gray-500 dark:text-gray-400">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-6">
+                        <div class="text-sm text-gray-500 dark:text-gray-400" id="resultsCount">
+                            Loading...
+                        </div>
+                        <div class="flex space-x-2" id="paginationControls">
+                            <!-- Pagination will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- JS for Navigation + Theme + Chart -->
+    <script>
+        // Sidebar Navigation
+        const menuItems = document.querySelectorAll('.menu-item');
+        const pages = document.querySelectorAll('.page-content');
+        menuItems.forEach(item => {
+            item.addEventListener('click', e => {
+                e.preventDefault();
+                menuItems.forEach(m => m.classList.remove('active'));
+                item.classList.add('active');
+                const target = item.getAttribute('href').substring(1);
+                pages.forEach(p => p.classList.remove('active'));
+                document.getElementById(target).classList.add('active');
+            });
+        });
+
+        // Handle "View More" link navigation to verification history
+        document.querySelectorAll('a[href="#history"]:not(.menu-item)').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                pages.forEach(p => p.classList.remove('active'));
+                const historyPage = document.getElementById('history');
+                if (historyPage) {
+                    historyPage.classList.add('active');
+                }
+                // Update active menu item
+                menuItems.forEach(m => m.classList.remove('active'));
+                const historyMenuItem = document.querySelector('a[href="#history"].menu-item');
+                if (historyMenuItem) {
+                    historyMenuItem.classList.add('active');
+                }
+            });
+        });
+
+        // Dark Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Chart.js Doughnut Chart (will be initialized after data is loaded)
+        let statusChart = null;
+        const ctx = document.getElementById('statusChart');
+        if (ctx) {
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Valid', 'Invalid'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load dashboard stats
+        function loadDashboardStats() {
+            fetch('api.php?action=organization_dashboard_stats', {
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', text);
+                        throw new Error('Invalid JSON response');
+                    }
+                });
+            })
+            .then(data => {
+                console.log('Dashboard stats data:', data);
+
+                if (data.error) {
+                    console.error('Error loading dashboard stats:', data.error);
+                    return;
+                }
+
+                // Update stat cards
+                const totalEl = document.getElementById('total-verifications-count');
+                const validEl = document.getElementById('valid-certificates-count');
+                const invalidEl = document.getElementById('invalid-certificates-count');
+
+                if (totalEl) totalEl.textContent = data.total_verifications || 0;
+                if (validEl) validEl.textContent = data.valid_certificates || 0;
+                if (invalidEl) invalidEl.textContent = data.invalid_certificates || 0;
+
+                // Update chart
+                if (statusChart) {
+                    statusChart.data.datasets[0].data = [
+                        data.valid_certificates || 0,
+                        data.invalid_certificates || 0
+                    ];
+                    statusChart.update();
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching dashboard stats:', err);
+            });
+        }
+
+        // Load recent verifications (latest 5)
+        function loadRecentVerifications() {
+            const tableBody = document.getElementById('recent-verifications-table');
+            if (!tableBody) return;
+
+            fetch('api.php?action=get_organization_validations&per_page=5&page=1', {
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', text);
+                        throw new Error('Invalid JSON response');
+                    }
+                });
+            })
+            .then(data => {
+                console.log('Recent verifications data:', data);
+
+                if (data.error) {
+                    console.error('API error:', data.error);
+                    tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-red-500">Error: ${data.error}</td></tr>`;
+                    return;
+                }
+
+                if (!data.records || data.records.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-8 text-gray-500 dark:text-gray-400">No verifications yet</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                data.records.forEach(record => {
+                    const statusClass = record.validation_status === 'VALID' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                        : record.validation_status === 'INVALID'
+                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+                    
+                    html += `
+                        <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td class="py-3 px-2 text-sm">${record.certificate_no || '-'}</td>
+                            <td class="py-3 px-2 text-sm">${record.student_name || '-'}</td>
+                            <td class="py-3 px-2">
+                                <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
+                                    ${record.validation_status || '-'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tableBody.innerHTML = html;
+            })
+            .catch(err => {
+                console.error('Error fetching recent verifications:', err);
+                if (tableBody) {
+                    tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-red-500">Error: ${err.message}</td></tr>`;
+                }
+            });
+        }
+
+        // Load stats when dashboard page is shown
+        const dashboardPage = document.getElementById('dashboard');
+        if (dashboardPage) {
+            // Load on initial page load if dashboard is active
+            if (dashboardPage.classList.contains('active')) {
+                loadDashboardStats();
+                loadRecentVerifications();
+            }
+
+            // Use MutationObserver to detect when page becomes active
+            const observer = new MutationObserver(() => {
+                if (dashboardPage.classList.contains('active')) {
+                    loadDashboardStats();
+                    loadRecentVerifications();
+                }
+            });
+            observer.observe(dashboardPage, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        // Also load when dashboard menu item is clicked
+        const dashboardMenuItem = document.querySelector('a[href="#dashboard"]');
+        if (dashboardMenuItem) {
+            dashboardMenuItem.addEventListener('click', () => {
+                setTimeout(() => {
+                    loadDashboardStats();
+                    loadRecentVerifications();
+                }, 100);
+            });
+        }
+
+        // Logout functionality
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = 'logout.php';
+                }
+            });
+        }
+
+        // Verify tab: file handling and OCR extraction (reuse image_ocr.php flow)
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+        const progressSection = document.getElementById('progressSection');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const resultsSection = document.getElementById('resultsSection');
+        const orgStructuredBody = document.getElementById('orgStructuredBody');
+        const orgConfidenceValue = document.getElementById('orgConfidenceValue');
+        const orgCopyBtn = document.getElementById('orgCopyBtn');
+        const orgValidateBtn = document.getElementById('orgValidateBtn');
+
+        let selectedFile = null;
+        window.orgCurrentExtractedFields = null;
+        window.orgConfidence = null;
+
+        if (dropArea && fileInput) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
+            });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+            });
+            dropArea.addEventListener('click', () => fileInput.click());
+            dropArea.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) handleFiles(files[0]);
+            });
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files.length > 0) handleFiles(e.target.files[0]);
+            });
+        }
+
+        function handleFiles(file) {
+            const isImage = file.type.match('image.*');
+            const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+            if (!isImage && !isPdf) { alert('Please select an image or PDF file'); return; }
+            if (file.size > 10 * 1024 * 1024) { alert('File size exceeds 10MB limit'); return; }
+            selectedFile = file;
+        }
+
+        if (uploadButton) {
+            uploadButton.addEventListener('click', () => {
+                if (!selectedFile) { alert('Please select a file first'); return; }
+                progressSection.classList.remove('hidden');
+                resultsSection.classList.add('hidden');
+                progressBar.style.width = '0%';
+                progressPercent.textContent = '0%';
+
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+
+                // Simulate progress locally
+                let fake = 0; const t = setInterval(() => { fake = Math.min(95, fake + 5); progressBar.style.width = fake + '%'; progressPercent.textContent = fake + '%'; }, 200);
+
+                fetch('api.php?action=ocr_text', { method: 'POST', body: formData })
+                    .then(r => r.json())
+                    .then(data => {
+                        clearInterval(t);
+                        progressBar.style.width = '100%';
+                        progressPercent.textContent = '100%';
+                        progressSection.classList.add('hidden');
+
+                        if (data.error) { alert('Error: ' + (data.detail || data.error)); return; }
+
+                        resultsSection.classList.remove('hidden');
+                        const confidence = Math.round((data.confidence || 0) * 100);
+                        window.orgConfidence = data.confidence || 0; // Store original confidence (0-1)
+                        if (orgConfidenceValue) orgConfidenceValue.textContent = confidence + '%';
+                        window.orgCurrentExtractedFields = data.extracted_fields || {};
+                        if (data.extracted_fields) {
+                            buildOrgStructuredDetailsFromFields(data.extracted_fields);
+                        } else {
+                            buildOrgStructuredDetailsFromText(data.text || 'No text found');
+                        }
+                    })
+                    .catch(err => {
+                        clearInterval(t);
+                        progressSection.classList.add('hidden');
+                        alert('Error: ' + err.message);
+                    });
+            });
+        }
+
+        function escapeHtmlOrg(str) {
+            if (typeof str !== 'string') return String(str || '');
+            return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+        }
+
+        function buildOrgStructuredDetailsFromFields(extracted) {
+            if (!orgStructuredBody) return;
+            orgStructuredBody.innerHTML = '';
+            const sections = {
+                'Student Details': { icon: 'fas fa-user-graduate', fields: [
+                    { key: 'Student Name', label: 'Student Name' },
+                    { key: 'Hall Ticket No', label: 'Hall Ticket No' },
+                    { key: 'SerialNo', label: 'Serial No' }
+                ]},
+                'University Information': { icon: 'fas fa-university', fields: [
+                    { key: 'University Name', label: 'University Name' },
+                    { key: 'College Name', label: 'College Name' },
+                    { key: 'Branch', label: 'Branch' }
+                ]},
+                'Examination Details': { icon: 'fas fa-calendar-alt', fields: [
+                    { key: 'Examination Date', label: 'Examination Date' }
+                ]},
+                'Academic Performance': { icon: 'fas fa-chart-line', fields: [
+                    { key: 'CGPA', label: 'CGPA' },
+                    { key: 'SGPA', label: 'SGPA' },
+                    { key: 'Result', label: 'Result' },
+                    { key: 'AggregateInWords', label: 'Aggregate Marks' }
+                ]}
+            };
+
+            window.orgCurrentExtractedFields = extracted;
+            for (const [sectionName, sectionData] of Object.entries(sections)) {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'ocr-section';
+                const sectionTitle = document.createElement('div');
+                sectionTitle.className = 'ocr-section-title';
+                sectionTitle.innerHTML = `<i class="${sectionData.icon}"></i>${sectionName}`;
+                sectionDiv.appendChild(sectionTitle);
+                const fieldsGrid = document.createElement('div');
+                fieldsGrid.className = 'ocr-fields-grid';
+                for (const field of sectionData.fields) {
+                    const fieldDiv = document.createElement('div');
+                    fieldDiv.className = 'ocr-field-item';
+                    if (['University Name','College Name','Branch'].includes(field.key)) fieldDiv.classList.add('ocr-full-width-field');
+                    const fieldId = `org_field_${field.key.replace(/\s+/g,'_').replace(/[()]/g,'')}`;
+                    const rawValue = extracted[field.key] || '';
+                    const displayValue = rawValue || 'Not Found';
+                    fieldDiv.innerHTML = `
+                        <div class="ocr-field-label">${escapeHtmlOrg(field.label)}</div>
+                        <div class="flex items-center gap-2">
+                            <div class="ocr-field-value" id="${fieldId}_display" style="flex:1;">${escapeHtmlOrg(displayValue)}</div>
+                            <input type="text" id="${fieldId}_input" value="${escapeHtmlOrg(rawValue)}" style="display:none;flex:1;padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:14px;" />
+                            <button class="px-2 py-1 text-white rounded text-xs" style="background:#007bff;" onclick="window.orgToggleEdit('${fieldId}','${field.key.replace(/'/g,"&#39;")}')"><i class="fas fa-edit"></i> Edit</button>
+                        </div>
+                    `;
+                    fieldsGrid.appendChild(fieldDiv);
+                }
+                sectionDiv.appendChild(fieldsGrid);
+                orgStructuredBody.appendChild(sectionDiv);
+            }
+        }
+
+        window.orgToggleEdit = function(fieldId, originalKey) {
+            const displayEl = document.getElementById(fieldId + '_display');
+            const inputEl = document.getElementById(fieldId + '_input');
+            const btn = document.querySelector(`button[onclick="window.orgToggleEdit('${fieldId}','${originalKey.replace(/'/g,"&#39;")}')"]`);
+            if (!displayEl || !inputEl || !btn) return;
+            if (inputEl.style.display === 'none') {
+                displayEl.style.display = 'none';
+                inputEl.style.display = 'block';
+                inputEl.focus();
+                btn.innerHTML = '<i class="fas fa-save"></i> Save';
+                btn.style.background = '#28a745';
+            } else {
+                const newValue = inputEl.value.trim();
+                displayEl.textContent = newValue || 'Not Found';
+                displayEl.style.display = 'block';
+                inputEl.style.display = 'none';
+                btn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                btn.style.background = '#007bff';
+                if (window.orgCurrentExtractedFields) {
+                    window.orgCurrentExtractedFields[originalKey] = newValue;
+                }
+            }
+        }
+
+        function buildOrgStructuredDetailsFromText(text) {
+            if (!orgStructuredBody) return;
+            orgStructuredBody.innerHTML = `
+                <div class="ocr-section">
+                    <div class="ocr-section-title"><i class="fas fa-exclamation-triangle"></i>No Data Found</div>
+                    <div class="ocr-field-value">No structured fields detected. Please try with a different document.</div>
+                </div>
+            `;
+        }
+
+        if (orgCopyBtn) {
+            orgCopyBtn.addEventListener('click', () => {
+                if (!orgStructuredBody) { alert('No data to copy'); return; }
+                let copyText = 'Certificate Details\n\n';
+                const sections = orgStructuredBody.querySelectorAll('.ocr-section');
+                sections.forEach(section => {
+                    const title = section.querySelector('.ocr-section-title').textContent.trim();
+                    copyText += `${title}:\n`;
+                    const fields = section.querySelectorAll('.ocr-field-item');
+                    fields.forEach(field => {
+                        const label = field.querySelector('.ocr-field-label').textContent.trim();
+                        const value = field.querySelector('.ocr-field-value').textContent.trim();
+                        copyText += `  ${label}: ${value}\n`;
+                    });
+                    copyText += '\n';
+                });
+                navigator.clipboard.writeText(copyText).then(() => alert('Certificate details copied to clipboard')).catch(e => alert('Failed to copy: ' + e));
+            });
+        }
+
+        if (orgValidateBtn) {
+            orgValidateBtn.addEventListener('click', () => {
+                if (!window.orgCurrentExtractedFields) { alert('No extracted data to validate'); return; }
+                // Open a side-by-side comparison view below results
+                validateAgainstDatabase(window.orgCurrentExtractedFields);
+            });
+        }
+
+        function validateAgainstDatabase(extracted) {
+            fetch('api.php?action=validate_certificate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ extracted_fields: extracted })
+            })
+            .then(r => r.text())
+            .then(text => {
+                try { return JSON.parse(text); } catch (e) { throw new Error('Unexpected response: ' + text.slice(0, 200)); }
+            })
+            .then(data => {
+                if (data.error) { alert('Validation error: ' + (data.detail || data.error)); return; }
+                renderValidationResult(extracted, data);
+            })
+            .catch(err => alert('Validation failed: ' + err.message));
+        }
+
+        function renderValidationResult(extracted, result) {
+            // Create comparison layout under the preview
+            const container = document.createElement('div');
+            container.className = 'mt-6';
+            container.innerHTML = `
+                <div class="ocr-section">
+                    <div class="ocr-section-title"><i class="fas fa-balance-scale"></i>Validation Comparison</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <div class="ocr-section-title"><i class="fas fa-file-alt"></i>Uploaded Details</div>
+                            <div id="orgCompareLeft" class="ocr-fields-grid"></div>
+                        </div>
+                        <div>
+                            <div class="ocr-section-title"><i class="fas fa-database"></i>Database Details</div>
+                            <div id="orgCompareRight" class="ocr-fields-grid"></div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="px-3 py-1 rounded text-white text-sm" id="orgVerdictBadge"></span>
+                    </div>
+                </div>
+            `;
+            // Append once (remove previous if exists)
+            const existing = document.getElementById('orgValidationBlock');
+            if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+            container.id = 'orgValidationBlock';
+            document.querySelector('#resultsSection .ocr-content').appendChild(container);
+
+            const left = container.querySelector('#orgCompareLeft');
+            const right = container.querySelector('#orgCompareRight');
+            const pairs = result.compare || {};
+            Object.entries(pairs).forEach(([label, values]) => {
+                const [l, r] = values;
+                if ((String(l || '').trim() === '') && (String(r || '').trim() === '')) return;
+                const leftDiv = document.createElement('div');
+                leftDiv.className = 'ocr-field-item';
+                leftDiv.innerHTML = `<div class="ocr-field-label">${escapeHtmlOrg(label)}</div><div class="ocr-field-value">${escapeHtmlOrg(l || '')}</div>`;
+                left.appendChild(leftDiv);
+                const rightDiv = document.createElement('div');
+                rightDiv.className = 'ocr-field-item';
+                rightDiv.innerHTML = `<div class="ocr-field-label">${escapeHtmlOrg(label)}</div><div class="ocr-field-value">${escapeHtmlOrg(r || '')}</div>`;
+                right.appendChild(rightDiv);
+            });
+
+            const badge = container.querySelector('#orgVerdictBadge');
+            if (result.valid) {
+                badge.textContent = `VALID (Score: ${result.score ?? 'N/A'}%)`;
+                badge.style.background = '#16a34a';
+            } else {
+                badge.textContent = `INVALID (Score: ${result.score ?? 'N/A'}%)`;
+                badge.style.background = '#dc2626';
+            }
+
+            // Save validation to database
+            saveOrganizationValidation(extracted, result);
+        }
+
+        function saveOrganizationValidation(extracted, validationResult) {
+            // Prepare data for saving
+            // window.orgConfidence is stored as decimal (0-1) from OCR API
+            // Convert to percentage (0-100) for storage
+            const confidence = window.orgConfidence || 0;
+            const confidencePercent = (confidence * 100);
+            
+            const payload = {
+                extracted_fields: extracted,
+                confidence: confidencePercent,
+                validation_score: validationResult.score || null,
+                validation_status: validationResult.valid ? 'VALID' : 'INVALID'
+            };
+
+            fetch('api.php?action=save_organization_validation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Failed to save validation:', data.error);
+                    // Don't show error to user, just log it
+                } else {
+                    console.log('Validation saved successfully:', data);
+                }
+            })
+            .catch(err => {
+                console.error('Error saving validation:', err);
+                // Don't show error to user, just log it
+            });
+        }
+
+        // Bulk Upload functionality
+        const bulkUploadArea = document.getElementById('bulkUploadArea');
+        const bulkFileInput = document.getElementById('bulkFileInput');
+        const bulkUploadBtn = document.getElementById('bulkUploadBtn');
+        const bulkFileName = document.getElementById('bulkFileName');
+        const bulkUploadProgress = document.getElementById('bulkUploadProgress');
+        const bulkProgressBar = document.getElementById('bulkProgressBar');
+        const bulkProgressPercent = document.getElementById('bulkProgressPercent');
+        const bulkUploadResult = document.getElementById('bulkUploadResult');
+
+        let selectedBulkFile = null;
+
+        if (bulkUploadArea && bulkFileInput) {
+            // Click to browse
+            bulkUploadArea.addEventListener('click', () => bulkFileInput.click());
+
+            // Drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                bulkUploadArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                bulkUploadArea.addEventListener(eventName, () => {
+                    bulkUploadArea.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                bulkUploadArea.addEventListener(eventName, () => {
+                    bulkUploadArea.classList.remove('dragover');
+                }, false);
+            });
+
+            bulkUploadArea.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    handleBulkFile(files[0]);
+                }
+            }, false);
+
+            bulkFileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                    handleBulkFile(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleBulkFile(file) {
+            if (file.type !== 'text/csv' && !file.name.toLowerCase().endsWith('.csv')) {
+                alert('Please select a CSV file');
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size exceeds 10MB limit');
+                return;
+            }
+            selectedBulkFile = file;
+            bulkFileName.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            bulkFileName.classList.remove('hidden');
+            bulkUploadBtn.disabled = false;
+        }
+
+        if (bulkUploadBtn) {
+            bulkUploadBtn.addEventListener('click', () => {
+                if (!selectedBulkFile) {
+                    alert('Please select a CSV file first');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', selectedBulkFile);
+
+                // Show progress
+                bulkUploadProgress.classList.remove('hidden');
+                bulkUploadBtn.disabled = true;
+                bulkUploadResult.classList.add('hidden');
+                bulkProgressBar.style.width = '0%';
+                bulkProgressPercent.textContent = '0%';
+
+                // Simulate progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 5;
+                    if (progress > 90) progress = 90;
+                    bulkProgressBar.style.width = `${progress}%`;
+                    bulkProgressPercent.textContent = `${progress}%`;
+                }, 200);
+
+                fetch('api.php?action=bulk_upload_csv', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    clearInterval(progressInterval);
+                    bulkProgressBar.style.width = '100%';
+                    bulkProgressPercent.textContent = '100%';
+
+                    setTimeout(() => {
+                        bulkUploadProgress.classList.add('hidden');
+                        bulkUploadResult.classList.remove('hidden');
+
+                        if (data.error) {
+                            bulkUploadResult.innerHTML = `<div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">Error: ${data.error}</div>`;
+                        } else {
+                            const errorCount = data.errors && data.errors.length > 0 ? data.errors.length : 0;
+                            const errorText = errorCount > 0 ? ` (${errorCount} error(s))` : '';
+                            bulkUploadResult.innerHTML = `<div class="p-4 bg-green-100 border border-green-400 text-green-700 rounded dark:bg-green-900/20 dark:border-green-800 dark:text-green-400">Successfully processed ${data.inserted} record(s)${errorText}</div>`;
+                            if (errorCount > 0 && data.errors) {
+                                const errorList = data.errors.slice(0, 5).map(e => `<li>${e}</li>`).join('');
+                                bulkUploadResult.innerHTML += `<div class="mt-2 text-sm text-gray-600 dark:text-gray-400"><ul class="list-disc list-inside">${errorList}</ul>${data.errors.length > 5 ? `<p>... and ${data.errors.length - 5} more error(s)</p>` : ''}</div>`;
+                            }
+                        }
+                        bulkUploadBtn.disabled = false;
+                    }, 500);
+                })
+                .catch(err => {
+                    clearInterval(progressInterval);
+                    bulkUploadProgress.classList.add('hidden');
+                    bulkUploadResult.classList.remove('hidden');
+                    bulkUploadResult.innerHTML = `<div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">Error: ${err.message}</div>`;
+                    bulkUploadBtn.disabled = false;
+                });
+            });
+        }
+
+        // Verification History functionality
+        let currentPage = 1;
+        const perPage = 20;
+        let currentFilters = {};
+
+        function loadValidations() {
+            const tableBody = document.getElementById('validationsTableBody');
+            const resultsCount = document.getElementById('resultsCount');
+            const paginationControls = document.getElementById('paginationControls');
+
+            if (!tableBody) return;
+
+            // Show loading
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500 dark:text-gray-400">Loading...</td></tr>';
+
+            // Build query parameters
+            const params = new URLSearchParams({
+                page: currentPage,
+                per_page: perPage
+            });
+
+            if (currentFilters.status) params.append('status', currentFilters.status);
+            if (currentFilters.score_min !== undefined) params.append('score_min', currentFilters.score_min);
+            if (currentFilters.score_max !== undefined) params.append('score_max', currentFilters.score_max);
+            if (currentFilters.date_from) params.append('date_from', currentFilters.date_from);
+            if (currentFilters.date_to) params.append('date_to', currentFilters.date_to);
+
+            fetch(`api.php?action=get_organization_validations&${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">Error: ${data.error}</td></tr>`;
+                        return;
+                    }
+
+                    // Render table
+                    if (data.records && data.records.length > 0) {
+                        tableBody.innerHTML = data.records.map(record => {
+                            const date = new Date(record.created_at);
+                            const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                            const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                            const statusClass = record.validation_status === 'VALID' ? 'valid' : 'invalid';
+                            const statusBg = record.validation_status === 'VALID' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+                            
+                            return `
+                                <tr class="text-sm border-b dark:border-gray-700">
+                                    <td class="py-3">${dateStr}, ${timeStr}</td>
+                                    <td class="py-3">${escapeHtml(record.certificate_no || 'N/A')}</td>
+                                    <td class="py-3">${escapeHtml(record.student_name || 'N/A')}</td>
+                                    <td class="py-3">${escapeHtml(record.university_name || record.college_name || 'N/A')}</td>
+                                    <td class="py-3">${record.validation_score !== null && record.validation_score !== undefined ? parseFloat(record.validation_score).toFixed(2) + '%' : 'N/A'}</td>
+                                    <td class="py-3">
+                                        <span class="verification-badge ${statusClass} px-2 py-1 rounded-full text-xs ${statusBg}">${escapeHtml(record.validation_status || 'N/A')}</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500 dark:text-gray-400">No records found</td></tr>';
+                    }
+
+                    // Update results count
+                    const start = data.total > 0 ? ((data.page - 1) * data.per_page) + 1 : 0;
+                    const end = Math.min(data.page * data.per_page, data.total);
+                    resultsCount.textContent = `Showing ${start} to ${end} of ${data.total} results`;
+
+                    // Render pagination
+                    if (data.total_pages > 1) {
+                        let paginationHTML = '';
+                        
+                        // Previous button
+                        paginationHTML += `
+                            <button ${data.page <= 1 ? 'disabled class="px-3 py-1 bg-gray-100 rounded-md dark:bg-gray-700 opacity-50 cursor-not-allowed"' : 'class="px-3 py-1 bg-gray-100 rounded-md dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"'} 
+                                    onclick="goToPage(${data.page - 1})">
+                                &laquo; Previous
+                            </button>
+                        `;
+
+                        // Page numbers
+                        for (let i = 1; i <= data.total_pages; i++) {
+                            if (i === 1 || i === data.total_pages || (i >= data.page - 2 && i <= data.page + 2)) {
+                                paginationHTML += `
+                                    <button ${i === data.page ? 'class="px-3 py-1 bg-primary text-white rounded-md"' : 'class="px-3 py-1 bg-gray-100 rounded-md dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"'} 
+                                            onclick="goToPage(${i})">
+                                        ${i}
+                                    </button>
+                                `;
+                            } else if (i === data.page - 3 || i === data.page + 3) {
+                                paginationHTML += '<span class="px-3 py-1">...</span>';
+                            }
+                        }
+
+                        // Next button
+                        paginationHTML += `
+                            <button ${data.page >= data.total_pages ? 'disabled class="px-3 py-1 bg-gray-100 rounded-md dark:bg-gray-700 opacity-50 cursor-not-allowed"' : 'class="px-3 py-1 bg-gray-100 rounded-md dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"'} 
+                                    onclick="goToPage(${data.page + 1})">
+                                Next &raquo;
+                            </button>
+                        `;
+
+                        paginationControls.innerHTML = paginationHTML;
+                    } else {
+                        paginationControls.innerHTML = '';
+                    }
+                })
+                .catch(err => {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">Error loading data: ${err.message}</td></tr>`;
+                });
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            loadValidations();
+        }
+
+        function escapeHtml(text) {
+            if (text === null || text === undefined) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Filter handlers
+        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+        const filterStatus = document.getElementById('filterStatus');
+        const filterScoreMin = document.getElementById('filterScoreMin');
+        const filterScoreMax = document.getElementById('filterScoreMax');
+        const filterDate = document.getElementById('filterDate');
+
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', () => {
+                currentFilters = {};
+                
+                if (filterStatus && filterStatus.value) {
+                    currentFilters.status = filterStatus.value;
+                }
+                
+                if (filterScoreMin && filterScoreMin.value) {
+                    currentFilters.score_min = parseFloat(filterScoreMin.value);
+                }
+                
+                if (filterScoreMax && filterScoreMax.value) {
+                    currentFilters.score_max = parseFloat(filterScoreMax.value);
+                }
+                
+                if (filterDate && filterDate.value) {
+                    currentFilters.date_from = filterDate.value;
+                }
+                
+                currentPage = 1;
+                loadValidations();
+            });
+        }
+
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', () => {
+                currentFilters = {};
+                if (filterStatus) filterStatus.value = '';
+                if (filterScoreMin) filterScoreMin.value = '';
+                if (filterScoreMax) filterScoreMax.value = '';
+                if (filterDate) filterDate.value = '';
+                currentPage = 1;
+                loadValidations();
+            });
+        }
+
+        // Load validations when history page is shown
+        const historyPage = document.getElementById('history');
+        if (historyPage) {
+            // Use MutationObserver to detect when page becomes active
+            const observer = new MutationObserver(() => {
+                if (historyPage.classList.contains('active')) {
+                    loadValidations();
+                }
+            });
+            observer.observe(historyPage, { attributes: true, attributeFilter: ['class'] });
+            
+            // Also load on initial page load if history is the active page
+            if (historyPage.classList.contains('active')) {
+                loadValidations();
+            }
+        }
+
+        // Also load when history menu item is clicked
+        const historyMenuItem = document.querySelector('a[href="#history"]');
+        if (historyMenuItem) {
+            historyMenuItem.addEventListener('click', () => {
+                setTimeout(() => loadValidations(), 100);
+            });
+        }
+    </script>
+</body>
+</html>

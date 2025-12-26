@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pending Registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+  <div class="max-w-5xl mx-auto p-6">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-semibold text-gray-800">Pending Registration</h1>
+        <p class="text-sm text-gray-500">Review details and take action</p>
+      </div>
+      <a href="admin_dashboard.php" class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition">← Back to Dashboard</a>
+    </div>
+    <div id="detailCard" class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-6 md:p-8 mb-6">Loading...</div>
+    <div class="bg-white rounded-xl shadow-lg ring-1 ring-black/5 p-4 md:p-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <p class="text-sm text-gray-500">Please review the information above before taking action.</p>
+        <div class="flex items-center gap-3">
+          <button id="approveBtn" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            Approve
+          </button>
+          <button id="rejectBtn" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3-9a1 1 0 10-2 0v4a1 1 0 102 0V9zm-4 0a1 1 0 10-2 0v4a1 1 0 102 0V9z" clip-rule="evenodd"/></svg>
+            Reject
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+

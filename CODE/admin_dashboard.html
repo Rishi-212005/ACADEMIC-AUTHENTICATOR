@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Authenticity Platform - Admin Dashboard</title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+            width: 16rem;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 50;
+                height: 100vh;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast.error {
+            background-color: #f44336;
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .nav-item.active {
+            background-color: rgba(59, 130, 246, 0.2);
+            border-right: 4px solid rgb(59, 130, 246);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toast-message">Operation successful!</span>
+    </div>
+
+    <!-- Mobile menu button -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <button id="mobileMenuButton" class="p-2 rounded-md bg-white dark:bg-gray-800 shadow-md">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar bg-white dark:bg-gray-800 shadow-md h-screen overflow-y-auto">
+        <div class="p-5 border-b dark:border-gray-700">
+            <h1 class="text-xl font-bold text-primary-600 dark:text-primary-400">
+                <i class="fas fa-graduation-cap mr-2"></i> CertiAuth Admin
+            </h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">State Administrator Panel</p>
+        </div>
+        
+        <nav class="mt-6">
+            <div class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Main</div>
+            <a href="#" class="nav-item active flex items-center px-6 py-3 mt-1 text-gray-700 dark:text-gray-200">
+                <i class="fas fa-home mr-3"></i>
+                Dashboard
+            </a>
+            <a href="#" class="nav-item flex items-center px-6 py-3 mt-1 text-gray-600 dark:text-gray-300">
+                <i class="fas fa-clock mr-3"></i>
+                Pending Approvals
+                <span id="pending-approvals-badge" class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">0</span>
+            </a>
+            <a href="admin_institutions.php" id="navInstitutions" class="nav-item flex items-center px-6 py-3 mt-1 text-gray-600 dark:text-gray-300">
+                <i class="fas fa-university mr-3"></i>
+                Institutions List
+            </a>
+            <a href="admin_organizations.php" id="navOrganizations" class="nav-item flex items-center px-6 py-3 mt-1 text-gray-600 dark:text-gray-300">
+                <i class="fas fa-building mr-3"></i>
+                Organizations List
+            </a>
+            
+            <!-- Tools removed per requirements -->
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content p-5">
+        <!-- Top Navbar -->
+        <header class="flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold">Dashboard Overview</h2>
+            <div class="flex items-center space-x-4">
+                <button id="darkModeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                            <span>AD</span>
+                        </div>
+                        <div class="ml-2">
+                            <p class="text-sm font-medium">Admin User</p>
+                        </div>
+                    </div>
+                    <button id="logout-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-300">
+                        <i class="fas fa-university text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">Total Institutions</p>
+                        <h3 id="total-institutions-count" class="font-bold text-2xl">0</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500 dark:text-green-300">
+                        <i class="fas fa-building text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">Total Organizations</p>
+                        <h3 id="total-organizations-count" class="font-bold text-2xl">0</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-500 dark:text-purple-300">
+                        <i class="fas fa-certificate text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">Total Verifications</p>
+                        <h3 id="total-verifications-count" class="font-bold text-2xl">0</h3>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 class="font-semibold mb-4">Verification Status</h3>
+                <div class="chart-container">
+                    <canvas id="verificationChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h3 class="font-semibold mb-4">Monthly Verifications Trend</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Verification Activity - HIDDEN -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 overflow-hidden hidden">
+            <div class="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center">
+                <h3 class="font-semibold text-lg">Recent Verification Activity</h3>
+                <button id="viewAllButton" class="text-primary-500 hover:text-primary-600 text-sm font-medium">View All</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contact</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Submitted On</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentActivityTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- Dynamic content will be loaded here -->
+                    </tbody>
+                </table
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle mobile sidebar
+        document.getElementById('mobileMenuButton').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        });
+
+        // Dark mode toggle
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                this.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                this.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            updateChartColors();
+        });
+
+
+        // View All button functionality -> Pending Approvals
+        document.getElementById('viewAllButton').addEventListener('click', function(e) {
+            e.preventDefault();
+            // navigate to Pending Approvals view
+            if (window.showPendingContent) window.showPendingContent('both');
+        });
+
+    // Navigation items functionality
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            const href = this.getAttribute('href') || '';
+            const id = this.id || '';
+            // Allow hard navigation for approved lists pages
+            if (id === 'navInstitutions' || id === 'navOrganizations') {
+                if (href) { window.location.href = href; }
+                return;
+            }
+            e.preventDefault();
+            
+            // Remove active class from all items
+            document.querySelectorAll('.nav-item').forEach(navItem => {
+                navItem.classList.remove('active');
+                navItem.classList.remove('bg-primary-100', 'dark:bg-gray-700', 'border-r-4', 'border-primary-500');
+                navItem.classList.add('text-gray-600', 'dark:text-gray-300');
+            });
+            
+            // Add active class to clicked item
+            this.classList.add('active');
+            this.classList.add('bg-primary-100', 'dark:bg-gray-700', 'border-r-4', 'border-primary-500');
+            this.classList.remove('text-gray-600', 'dark:text-gray-300');
+            
+            // Get the page name
+            const pageName = this.textContent.trim();
+            
+            // Handle different navigation items
+            if (pageName.includes('Pending Approvals')) {
+                showPendingContent('both');
+            } else if (pageName.includes('Institutions List')) {
+                if (window.showApprovedList) window.showApprovedList('institutions');
+            } else if (pageName.includes('Organizations List')) {
+                if (window.showApprovedList) window.showApprovedList('organizations');
+            } else if (pageName.includes('Dashboard')) {
+                // Show default dashboard content
+                location.reload();
+            } else {
+                // For other menu items, just show a toast
+                showToast(`Navigating to ${pageName}`, false);
+            }
+        });
+    });
+
+    // Function to show pending content based on type
+    function showPendingContent(type) {
+        // Clear the main content area
+        const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = '';
+        
+        // Create header
+        const header = document.createElement('header');
+        header.className = 'flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow mb-6';
+        
+        let title = '';
+        if (type === 'both') title = 'Pending Approvals';
+        else if (type === 'institutions') title = 'Institutions List - Pending Approvals';
+        else if (type === 'organizations') title = 'Organizations List - Pending Approvals';
+        
+        header.innerHTML = `
+            <h2 class="text-xl font-semibold">${title}</h2>
+            <div class="flex items-center space-x-4">
+                <button id="darkModeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                        <span>AD</span>
+                    </div>
+                    <div class="ml-2">
+                        <p class="text-sm font-medium">Admin User</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        mainContent.appendChild(header);
+        
+        // Create content based on type
+        if (type === 'both' || type === 'institutions') {
+            const institutionsSection = document.createElement('div');
+            institutionsSection.className = 'bg-white dark:bg-gray-800 rounded-lg shadow mb-6 overflow-hidden';
+            institutionsSection.innerHTML = `
+                <div class="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center">
+                    <h3 class="font-semibold">Pending Institutions</h3>
+                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">5 pending</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Institution Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contact</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Submitted</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">Delhi Technical University</td>
+                                <td class="px-6 py-4 whitespace-nowrap">admin@dtu.ac.in</td>
+                                <td class="px-6 py-4 whitespace-nowrap">2 days ago</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <button class="approve-btn text-green-500 hover:text-green-600 text-sm font-medium mr-2">Approve</button>
+                                    <button class="reject-btn text-red-500 hover:text-red-600 text-sm font-medium">Reject</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">Mumbai Institute of Technology</td>
+                                <td class="px-6 py-4 whitespace-nowrap">registrar@mit.edu</td>
+                                <td class="px-6 py-4 whitespace-nowrap">3 days ago</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <button class="approve-btn text-green-500 hover:text-green-600 text-sm font-medium mr-2">Approve</button>
+                                    <button class="reject-btn text-red-500 hover:text-red-600 text-sm font-medium">Reject</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">Chennai Engineering College</td>
+                                <td class="px-6 py-4 whitespace-nowrap">contact@cec.edu</td>
+                                <td class="px-6 py-4 whitespace-nowrap">4 days ago</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <button class="approve-btn text-green-500 hover:text-green-600 text-sm font-medium mr-2">Approve</button>
+                                    <button class="reject-btn text-red-500 hover:text-red-600 text-sm font-medium">Reject</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            mainContent.appendChild(institutionsSection);
+        }
+        
+        if (type === 'both' || type === 'organizations') {
+            const organizationsSection = document.createElement('div');
+            organizationsSection.className = 'bg-white dark:bg-gray-800 rounded-lg shadow mb-6 overflow-hidden';
+            organizationsSection.innerHTML = `
+                <div class="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center">
+                    <h3 class="font-semibold">Pending Organizations</h3>
+                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">3 pending</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Organization Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contact</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Submitted</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">TechSolutions Pvt Ltd</td>
+                                <td class="px-6 py-4 whitespace-nowrap">hr@techsolutions.com</td>
+                                <td class="px-6 py-4 whitespace-nowrap">1 day ago</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <button class="approve-btn text-green-500 hover:text-green-600 text-sm font-medium mr-2">Approve</button>
+                                    <button class="reject-btn text-red-500 hover:text-red-600 text-sm font-medium">Reject</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">Global Innovations Inc</td>
+                                <td class="px-6 py-4 whitespace-nowrap">admin@globalinnovations.com</td>
+                                <td class="px-6 py-4 whitespace-nowrap">2 days ago</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <button class="approve-btn text-green-500 hover:text-green-600 text-sm font-medium mr-2">Approve</button>
+                                    <button class="reject-btn text-red-500 hover:text-red-600 text-sm font-medium">Reject</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">DataSystems Corporation</td>
+                                <td class="px-6 py-4 whitespace-nowrap">info@datasystems.com</td>
+                                <td class="px-6 py-4 whitespace-nowrap">3 days ago</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <button class="approve-btn text-green-500 hover:text-green-600 text-sm font-medium mr-2">Approve</button>
+                                    <button class="reject-btn text-red-500 hover:text-red-600 text-sm font-medium">Reject</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            mainContent.appendChild(organizationsSection);
+        }
+        
+        // Add event listeners to the new buttons
+        setTimeout(() => {
+            document.getElementById('darkModeToggle').addEventListener('click', function() {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                    this.innerHTML = '<i class="fas fa-moon"></i>';
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                    this.innerHTML = '<i class="fas fa-sun"></i>';
+                }
+            });
+            
+            document.querySelectorAll('.approve-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const name = row.querySelector('td:first-child').textContent;
+                    showToast(`${name} approved successfully!`, false);
+                });
+            });
+            
+            document.querySelectorAll('.reject-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const name = row.querySelector('td:first-child').textContent;
+                    showToast(`${name} rejected.`, false);
+                });
+            });
+        }, 100);
+        
+        showToast(`Showing ${title}`, false);
+    }
+
+        // View Details buttons functionality
+        document.querySelectorAll('.view-details-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const certId = row.querySelector('td:first-child').textContent;
+                showToast(`Details for ${certId} opened`, false);
+            });
+        });
+
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.getElementById('darkModeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        // Show toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            
+            if (isError) {
+                toast.classList.add('error');
+            } else {
+                toast.classList.remove('error');
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize charts
+        let verificationChart, monthlyTrendChart;
+
+        function initCharts() {
+            // Initialize with default data first
+            initVerificationChart([0, 0, 0]);
+            initMonthlyChart([], []);
+            
+            // Then load real data
+            loadChartData();
+        }
+
+        function initVerificationChart(data) {
+            const verificationCtx = document.getElementById('verificationChart').getContext('2d');
+            verificationChart = new Chart(verificationCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Approved', 'Pending', 'Rejected'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',  // green - approved
+                            'rgba(234, 179, 8, 0.8)',   // yellow - pending
+                            'rgba(239, 68, 68, 0.8)'    // red - rejected
+                        ],
+                        borderColor: [
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(234, 179, 8, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        }
+
+        function initMonthlyChart(labels, data) {
+            const trendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+            monthlyTrendChart = new Chart(trendCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Certificate Verifications',
+                        data: data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        function loadChartData() {
+            fetch('api.php?action=admin_summary')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Chart data loaded:', data);
+                    
+                    // Update verification status chart
+                    if (verificationChart) {
+                        verificationChart.data.datasets[0].data = [
+                            data.status_breakdown.valid || 0,      // Approved
+                            data.status_breakdown.suspicious || 0,  // Pending
+                            data.status_breakdown.invalid || 0      // Rejected (dummy for now)
+                        ];
+                        verificationChart.update();
+                    }
+                    
+                    // Update monthly trend chart
+                    if (monthlyTrendChart) {
+                        monthlyTrendChart.data.labels = data.monthly.labels || [];
+                        monthlyTrendChart.data.datasets[0].data = data.monthly.data || [];
+                        monthlyTrendChart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading chart data:', error);
+                });
+        }
+
+        // Update chart colors when dark mode is toggled
+        function updateChartColors() {
+            if (verificationChart) {
+                verificationChart.options.plugins.legend.labels.color = document.documentElement.classList.contains('dark') ? '#fff' : '#333';
+                verificationChart.update();
+            }
+            
+            if (monthlyTrendChart) {
+                monthlyTrendChart.options.scales.y.ticks.color = document.documentElement.classList.contains('dark') ? '#fff' : '#333';
+                monthlyTrendChart.options.scales.y.grid.color = document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                monthlyTrendChart.options.scales.x.ticks.color = document.documentElement.classList.contains('dark') ? '#fff' : '#333';
+                monthlyTrendChart.options.scales.x.grid.color = document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                monthlyTrendChart.options.plugins.legend.labels.color = document.documentElement.classList.contains('dark') ? '#fff' : '#333';
+                monthlyTrendChart.update();
+            }
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            
+            // Logout button functionality
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        window.location.href = 'logout.php';
+                    }
+                });
+            }
+            
+            // Simulate a successful action
+            setTimeout(() => {
+                showToast('Dashboard loaded successfully!');
+            }, 1000);
+        });
+
+        // Ensure dashboard data loads even if script loads late
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Data will be loaded by admin_dashboard.js
+            });
+        } else {
+            // DOM already loaded, trigger data load if function exists
+            if (typeof updateDashboardData === 'function') {
+                setTimeout(updateDashboardData, 100);
+            }
+        }
+    </script>
+    <!-- Admin Dashboard Script -->
+    <script src="assets/js/admin_dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CertiAuth - Institute Dashboard</title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+            width: 16rem;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 50;
+                height: 100vh;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            min-width: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast.error {
+            background-color: #f44336;
+        }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .nav-item.active {
+            background-color: rgba(59, 130, 246, 0.2);
+            border-right: 4px solid rgb(59, 130, 246);
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.active {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        
+        .verification-result {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s ease;
+        }
+        
+        .verification-result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-valid {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .status-suspect {
+            background-color: #fef9c3;
+            color: #ca8a04;
+        }
+        
+        .status-invalid {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: white;
+            color: #4b5563;
+        }
+        
+        .pagination-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toast-message">Operation successful!</span>
+    </div>
+
+    <!-- Mobile menu button -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <button id="mobileMenuButton" class="p-2 rounded-md bg-white dark:bg-gray-800 shadow-md">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar bg-white dark:bg-gray-800 shadow-md h-screen overflow-y-auto">
+        <div class="p-5 border-b dark:border-gray-700">
+            <h1 class="text-xl font-bold text-primary-600 dark:text-primary-400">
+                <i class="fas fa-graduation-cap mr-2"></i> CertiAuth
+            </h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Institute Admin Panel</p>
+        </div>
+        
+        <nav class="mt-6">
+            <div class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Main</div>
+            <a href="#" data-page="dashboard" class="nav-item active flex items-center px-6 py-3 mt-1 text-gray-700 dark:text-gray-200">
+                <i class="fas fa-home mr-3"></i>
+                Dashboard
+            </a>
+            <a href="image_ocr.php" class="nav-item flex items-center px-6 py-3 mt-1 text-gray-600 dark:text-gray-300">
+                <i class="fas fa-file-upload mr-3"></i>
+                Upload Document
+            </a>
+            <a href="#" data-page="bulk-upload" class="nav-item flex items-center px-6 py-3 mt-1 text-gray-600 dark:text-gray-300">
+                <i class="fas fa-file-import mr-3"></i>
+                Bulk Upload
+            </a>
+            <a href="#" data-page="manage" class="nav-item flex items-center px-6 py-3 mt-1 text-gray-600 dark:text-gray-300">
+                <i class="fas fa-database mr-3"></i>
+                Manage Records
+            </a>
+        </nav>
+        
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content p-5">
+        <!-- Top Navbar -->
+        <header class="flex justify-between items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold" id="page-title">Dashboard Overview</h2>
+            <div class="flex items-center space-x-4">
+                <button id="darkModeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                        <span>AU</span>
+                    </div>
+                    <div class="ml-2">
+                        <p class="text-sm font-medium">Admin User</p>
+                    </div>
+                    <button id="logout-btn" class="ml-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active">
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-300">
+                            <i class="fas fa-certificate text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Total Certificates Issued</p>
+                            <h3 id="total-certificates-count" class="font-bold text-2xl">0</h3>
+                        </div>
+                    </div>
+                    </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-500 dark:text-green-300">
+                            <i class="fas fa-calendar-day text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Certificates Issued Today</p>
+                            <h3 id="today-certificates-count" class="font-bold text-2xl">0</h3>
+                        </div>
+                    </div>
+                    </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-500 dark:text-purple-300">
+                            <i class="fas fa-calendar-alt text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Certificates Issued This Year</p>
+                            <h3 id="year-certificates-count" class="font-bold text-2xl">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 gap-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <h3 class="font-semibold mb-4">Monthly Issued Certificates Trend</h3>
+                    <div class="chart-container">
+                        <canvas id="monthlyTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Document Page -->
+        <div id="verify" class="page">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                <h3 class="font-semibold text-lg mb-4">Upload Document</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- File Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Document (PDF/Image)</label>
+                        <div id="drop-zone" class="drop-zone">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500 dark:text-gray-400">Drag & drop your file here</p>
+                            <p class="text-sm text-gray-400 mt-1">or</p>
+                            <label for="file-upload" class="cursor-pointer mt-2 bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition">Select File</label>
+                            <input id="file-upload" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png">
+                            <a href="image_ocr.php" class="mt-3 inline-block bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">Open Upload Page</a>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Supported formats: PDF, JPG, PNG (Max 10MB)</p>
+                    </div>
+                    
+                    <!-- Manual Input -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Or Enter Document ID Manually</label>
+                        <input type="text" placeholder="Enter Document ID" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        <button class="mt-4 bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition w-full">Open</button>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mt-6" id="progress-section" style="display: none;">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Uploading...</span>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300" id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- Upload Result -->
+                <div id="verification-result" class="verification-result mt-6">
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-semibold text-lg">Upload Result</h4>
+                            <span id="result-badge" class="status-badge">VALID</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Certificate ID</p>
+                                <p class="font-medium" id="result-id">CERT-2023-123456</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Candidate Name</p>
+                                <p class="font-medium" id="result-name">Rajesh Kumar</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Roll Number</p>
+                                <p class="font-medium" id="result-roll">18BCE1234</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Course</p>
+                                <p class="font-medium" id="result-course">B.Tech Computer Science</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Issue Date</p>
+                                <p class="font-medium" id="result-date">15 May 2023</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Blockchain Hash</p>
+                                <p class="font-medium text-xs truncate" id="result-hash">0x7424a5e4c5f54f2c1b386d78a4c5d4e5f</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <div class="bg-white p-2 rounded-md mr-3">
+                                    <div id="qrcode" class="w-16 h-16 bg-gray-200 flex items-center justify-center">
+                                        <i class="fas fa-qrcode text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Scan to verify</p>
+                                    <p class="text-xs text-gray-400">Digital signature verified</p>
+                                </div>
+                            </div>
+                            <button class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition flex items-center">
+                                <i class="fas fa-download mr-2"></i> Download Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other pages would be implemented similarly -->
+        <div id="bulk-upload" class="page">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                <h3 class="font-semibold text-lg mb-4">Bulk Upload Certificates</h3>
+                <p class="text-gray-600 dark:text-gray-300 mb-6">Upload a CSV file containing certificate data for multiple students.</p>
+                
+                <div id="bulk-upload-area" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer mb-4">
+                    <i class="fas fa-file-excel text-4xl text-green-500 mb-4"></i>
+                    <p class="text-gray-500 dark:text-gray-400 mb-4">Drag & drop your CSV file here or click to browse</p>
+                    <label for="bulk-file-upload" class="cursor-pointer bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition inline-block">Select CSV File</label>
+                    <input id="bulk-file-upload" type="file" class="hidden" accept=".csv">
+                    <p id="bulk-file-name" class="mt-4 text-sm text-gray-600 dark:text-gray-400 hidden"></p>
+                </div>
+
+                <div id="bulk-upload-progress" class="hidden mb-4">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Uploading...</span>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300" id="bulk-progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="bulk-progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <button id="bulk-upload-btn" class="w-full bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition mb-6 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fas fa-upload mr-2"></i>Upload CSV File
+                </button>
+                
+                <div id="bulk-upload-result" class="hidden mt-4 p-4 rounded-lg"></div>
+                
+                <div class="mt-8">
+                    <h4 class="font-medium mb-4">File Requirements:</h4>
+                    <ul class="list-disc list-inside text-gray-600 dark:text-gray-300 space-y-2">
+                        <li>File format: CSV (.csv)</li>
+                        <li>Required columns: student_name, hall_ticket_no (or roll_number), certificate_no (or certificate_id), branch, course, university, college (optional)</li>
+                        <li>Maximum file size: 10MB</li>
+                        <li>First row should contain column headers</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional pages would be implemented here -->
+        <div id="manage" class="page">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-semibold text-lg">Manage Records</h3>
+                    <div class="flex gap-3">
+                        <button id="download-csv-btn" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">
+                            <i class="fas fa-download mr-2"></i>Download CSV
+                        </button>
+                        <button id="refresh-records-btn" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 transition">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
+                    </div>
+        </div>
+
+                <!-- Search Bar -->
+                <div class="mb-6">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="search-records-input" 
+                            placeholder="Search records by any field (name, certificate ID, roll number, course, etc.)..." 
+                            class="w-full px-4 py-3 pl-10 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                        >
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+        </div>
+
+                <!-- Records Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Student Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Hall Ticket/Roll No</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Certificate No</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Branch</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Exam Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Exam Month/Year</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Marks</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Credits</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">SGPA</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">CGPA</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date of Issue</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">University</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">College</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Course</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Medium</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pass Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Aggregate</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Achievement</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Raw Fields</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Updated At</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="records-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr>
+                                <td colspan="23" class="px-6 py-8 text-center text-gray-500">
+                                    <div class="flex flex-col items-center">
+                                        <i class="fas fa-spinner fa-spin text-4xl text-gray-300 mb-2"></i>
+                                        <p>Loading records...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+        </div>
+
+                <!-- Pagination (optional, can be added later) -->
+                <div id="records-pagination" class="mt-4 flex justify-between items-center hidden">
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        Showing <span id="records-start">0</span> to <span id="records-end">0</span> of <span id="records-total">0</span> records
+                    </div>
+                </div>
+        </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Toggle mobile sidebar
+        document.getElementById('mobileMenuButton').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        });
+
+        // Dark mode toggle
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                this.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                this.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            updateChartColors();
+        });
+
+        // Navigation functionality (only intercept SPA items that have data-page)
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item[data-page]').forEach(navItem => {
+                    navItem.classList.remove('active');
+                    navItem.classList.remove('bg-primary-100', 'dark:bg-gray-700', 'border-r-4', 'border-primary-500');
+                    navItem.classList.add('text-gray-600', 'dark:text-gray-300');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                this.classList.add('bg-primary-100', 'dark:bg-gray-700', 'border-r-4', 'border-primary-500');
+                this.classList.remove('text-gray-600', 'dark:text-gray-300');
+                
+                // Show the corresponding page
+                const pageId = this.getAttribute('data-page');
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                document.getElementById(pageId).classList.add('active');
+                
+                // Update page title
+                document.getElementById('page-title').textContent = this.textContent.trim();
+                
+                // Show toast notification
+                showToast(`Navigating to ${this.textContent.trim()}`, false);
+            });
+        });
+
+        // File upload functionality for Verify Documents page
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-upload');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropZone.classList.add('active');
+        }
+        
+        function unhighlight() {
+            dropZone.classList.remove('active');
+        }
+        
+        dropZone.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+        
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'application/pdf' || file.type.includes('image/')) {
+                    simulateVerification();
+                } else {
+                    showToast('Please upload a PDF or image file', true);
+                }
+            }
+        }
+        
+        function simulateVerification() {
+            // Show progress bar
+            document.getElementById('progress-section').style.display = 'block';
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                document.getElementById('progress-bar-fill').style.width = `${progress}%`;
+                document.getElementById('progress-percent').textContent = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    // Show result after a short delay
+                    setTimeout(() => {
+                        document.getElementById('progress-section').style.display = 'none';
+                        
+                        // Random result for demo purposes
+                        const results = ['valid', 'suspect', 'invalid'];
+                        const randomResult = results[Math.floor(Math.random() * results.length)];
+                        
+                        // Set result
+                        const resultBadge = document.getElementById('result-badge');
+                        resultBadge.textContent = randomResult.toUpperCase();
+                        resultBadge.className = 'status-badge';
+                        
+                        if (randomResult === 'valid') {
+                            resultBadge.classList.add('status-valid');
+                        } else if (randomResult === 'suspect') {
+                            resultBadge.classList.add('status-suspect');
+                        } else {
+                            resultBadge.classList.add('status-invalid');
+                        }
+                        
+                        // Fill in sample data
+                        document.getElementById('result-id').textContent = 'CERT-2023-' + Math.floor(100000 + Math.random() * 900000);
+                        document.getElementById('result-name').textContent = 'Rajesh Kumar';
+                        document.getElementById('result-roll').textContent = '18BCE' + Math.floor(1000 + Math.random() * 9000);
+                        document.getElementById('result-course').textContent = 'B.Tech Computer Science';
+                        document.getElementById('result-date').textContent = '15 May 2023';
+                        document.getElementById('result-hash').textContent = '0x' + Math.random().toString(16).substr(2, 32);
+                        
+                        // Show result
+                        document.getElementById('verification-result').classList.add('show');
+                        
+                        showToast('Verification completed successfully');
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.getElementById('darkModeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        // Show toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            
+            if (isError) {
+                toast.classList.add('error');
+            } else {
+                toast.classList.remove('error');
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize charts
+        let monthlyTrendChart = null;
+
+        function loadDashboardStats() {
+            fetch('api.php?action=institute_dashboard_stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        // Update total certificates count
+                        const totalCountElement = document.getElementById('total-certificates-count');
+                        if (totalCountElement) {
+                            totalCountElement.textContent = data.total_certificates.toLocaleString();
+                        }
+
+                        // Update today certificates count
+                        const todayCountElement = document.getElementById('today-certificates-count');
+                        if (todayCountElement) {
+                            todayCountElement.textContent = data.today_certificates.toLocaleString();
+                        }
+
+                        // Update year certificates count
+                        const yearCountElement = document.getElementById('year-certificates-count');
+                        if (yearCountElement) {
+                            yearCountElement.textContent = data.year_certificates.toLocaleString();
+                        }
+
+                        // Initialize monthly trend chart with real data
+                        initMonthlyTrendChart(data.monthly_trend);
+                    } else {
+                        console.error('Failed to load dashboard stats:', data.error);
+                        // Show error or default values
+                        const totalCountElement = document.getElementById('total-certificates-count');
+                        if (totalCountElement) {
+                            totalCountElement.textContent = '0';
+                        }
+                        const todayCountElement = document.getElementById('today-certificates-count');
+                        if (todayCountElement) {
+                            todayCountElement.textContent = '0';
+                        }
+                        const yearCountElement = document.getElementById('year-certificates-count');
+                        if (yearCountElement) {
+                            yearCountElement.textContent = '0';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading dashboard stats:', error);
+                    // Show default values on error
+                    const totalCountElement = document.getElementById('total-certificates-count');
+                    if (totalCountElement) {
+                        totalCountElement.textContent = '0';
+                    }
+                    const todayCountElement = document.getElementById('today-certificates-count');
+                    if (todayCountElement) {
+                        todayCountElement.textContent = '0';
+                    }
+                    const yearCountElement = document.getElementById('year-certificates-count');
+                    if (yearCountElement) {
+                        yearCountElement.textContent = '0';
+                }
+            });
+        }
+
+        function initMonthlyTrendChart(monthlyData) {
+            const trendCtx = document.getElementById('monthlyTrendChart');
+            if (!trendCtx) return;
+
+            // Destroy existing chart if it exists
+            if (monthlyTrendChart) {
+                monthlyTrendChart.destroy();
+            }
+
+            monthlyTrendChart = new Chart(trendCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: monthlyData.labels || [],
+                    datasets: [{
+                        label: 'Certificates Issued',
+                        data: monthlyData.data || [],
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#333',
+                                stepSize: 1,
+                                precision: 0
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        // Update chart colors when dark mode is toggled
+        function updateChartColors() {
+            if (monthlyTrendChart) {
+                monthlyTrendChart.options.scales.y.ticks.color = document.documentElement.classList.contains('dark') ? '#fff' : '#333';
+                monthlyTrendChart.options.scales.y.grid.color = document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                monthlyTrendChart.options.scales.x.ticks.color = document.documentElement.classList.contains('dark') ? '#fff' : '#333';
+                monthlyTrendChart.options.scales.x.grid.display = false;
+                monthlyTrendChart.options.plugins.legend.labels.color = document.documentElement.classList.contains('dark') ? '#fff' : '#333';
+                monthlyTrendChart.update();
+            }
+        }
+
+        // Bulk Upload functionality
+        const bulkFileInput = document.getElementById('bulk-file-upload');
+        const bulkUploadBtn = document.getElementById('bulk-upload-btn');
+        const bulkUploadArea = document.getElementById('bulk-upload-area');
+        const bulkFileName = document.getElementById('bulk-file-name');
+        const bulkUploadProgress = document.getElementById('bulk-upload-progress');
+        const bulkProgressBarFill = document.getElementById('bulk-progress-bar-fill');
+        const bulkProgressPercent = document.getElementById('bulk-progress-percent');
+        const bulkUploadResult = document.getElementById('bulk-upload-result');
+
+        let selectedBulkFile = null;
+
+        // File selection
+        bulkFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+                    selectedBulkFile = file;
+                    bulkFileName.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                    bulkFileName.classList.remove('hidden');
+                    bulkUploadBtn.disabled = false;
+                } else {
+                    showToast('Please select a CSV file', true);
+                    bulkFileInput.value = '';
+                    selectedBulkFile = null;
+                    bulkFileName.classList.add('hidden');
+                    bulkUploadBtn.disabled = true;
+                }
+            }
+        });
+
+        // Drag and drop for bulk upload
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            bulkUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            bulkUploadArea.addEventListener(eventName, function() {
+                bulkUploadArea.classList.add('active');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            bulkUploadArea.addEventListener(eventName, function() {
+                bulkUploadArea.classList.remove('active');
+            }, false);
+        });
+
+        bulkUploadArea.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+                    selectedBulkFile = file;
+                    bulkFileInput.files = files;
+                    bulkFileName.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                    bulkFileName.classList.remove('hidden');
+                    bulkUploadBtn.disabled = false;
+                } else {
+                    showToast('Please select a CSV file', true);
+                }
+            }
+        }, false);
+
+        // Bulk upload button click
+        bulkUploadBtn.addEventListener('click', function() {
+            if (!selectedBulkFile) {
+                showToast('Please select a CSV file first', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedBulkFile);
+
+            // Show progress
+            bulkUploadProgress.classList.remove('hidden');
+            bulkUploadBtn.disabled = true;
+            bulkUploadResult.classList.add('hidden');
+
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress > 90) progress = 90;
+                bulkProgressBarFill.style.width = `${progress}%`;
+                bulkProgressPercent.textContent = `${progress}%`;
+            }, 200);
+
+            fetch('api.php?action=bulk_upload_csv', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                bulkProgressBarFill.style.width = '100%';
+                bulkProgressPercent.textContent = '100%';
+
+                setTimeout(() => {
+                    bulkUploadProgress.classList.add('hidden');
+
+                    if (data.ok) {
+                        bulkUploadResult.className = 'mt-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800';
+                        bulkUploadResult.innerHTML = `
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <div>
+                                    <p class="font-semibold text-green-800 dark:text-green-200">Upload Successful!</p>
+                                    <p class="text-sm text-green-600 dark:text-green-400">${data.inserted || 0} records inserted successfully</p>
+                                    ${data.errors && data.errors.length > 0 ? `<p class="text-sm text-yellow-600 dark:text-yellow-400 mt-1">${data.errors.length} errors encountered</p>` : ''}
+                                </div>
+                            </div>
+                        `;
+                        bulkUploadResult.classList.remove('hidden');
+                        showToast('Bulk upload completed successfully', false);
+                        
+                        // Reset form
+                        bulkFileInput.value = '';
+                        selectedBulkFile = null;
+                        bulkFileName.classList.add('hidden');
+                        bulkUploadBtn.disabled = true;
+                    } else {
+                        bulkUploadResult.className = 'mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800';
+                        bulkUploadResult.innerHTML = `
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                                <div>
+                                    <p class="font-semibold text-red-800 dark:text-red-200">Upload Failed</p>
+                                    <p class="text-sm text-red-600 dark:text-red-400">${data.error || 'Unknown error occurred'}</p>
+                                </div>
+                            </div>
+                        `;
+                        bulkUploadResult.classList.remove('hidden');
+                        showToast(data.error || 'Upload failed', true);
+                        bulkUploadBtn.disabled = false;
+                    }
+                }, 500);
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                bulkUploadProgress.classList.add('hidden');
+                bulkUploadResult.className = 'mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800';
+                bulkUploadResult.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                        <div>
+                            <p class="font-semibold text-red-800 dark:text-red-200">Upload Failed</p>
+                            <p class="text-sm text-red-600 dark:text-red-400">Network error: ${error.message}</p>
+                        </div>
+                    </div>
+                `;
+                bulkUploadResult.classList.remove('hidden');
+                showToast('Upload failed: ' + error.message, true);
+                bulkUploadBtn.disabled = false;
+            });
+        });
+
+        // Manage Records functionality
+        let allRecords = [];
+        let filteredRecords = [];
+        let searchTimeout = null;
+
+        function loadRecords(searchTerm = '') {
+            const tableBody = document.getElementById('records-table-body');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="px-6 py-8 text-center text-gray-500">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-spinner fa-spin text-4xl text-gray-300 mb-2"></i>
+                            <p>Loading records...</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            fetch('api.php?action=get_records' + (searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        allRecords = data.records || [];
+                        filteredRecords = allRecords;
+                        displayRecords(allRecords);
+                    } else {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="22" class="px-6 py-8 text-center text-red-500">
+                                    <i class="fas fa-exclamation-circle mr-2"></i>${data.error || 'Failed to load records'}
+                                </td>
+                            </tr>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="22" class="px-6 py-8 text-center text-red-500">
+                                <i class="fas fa-exclamation-circle mr-2"></i>Error loading records: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '-';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function displayRecords(records) {
+            const tableBody = document.getElementById('records-table-body');
+            
+            if (records.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="23" class="px-6 py-8 text-center text-gray-500">
+                            <div class="flex flex-col items-center">
+                                <i class="fas fa-inbox text-4xl text-gray-300 mb-2"></i>
+                                <p>No records found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = records.map(record => {
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '-';
+                    return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                };
+
+                const formatDateTime = (dateStr) => {
+                    if (!dateStr) return '-';
+                    const date = new Date(dateStr);
+                    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + 
+                           date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                };
+
+                const recordName = record.student_name || 'Record';
+                const safeRecordName = recordName.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+                // Parse raw_extracted_fields if it's a JSON string
+                let rawFieldsDisplay = '-';
+                if (record.raw_extracted_fields) {
+                    try {
+                        const parsed = typeof record.raw_extracted_fields === 'string' 
+                            ? JSON.parse(record.raw_extracted_fields) 
+                            : record.raw_extracted_fields;
+                        rawFieldsDisplay = Object.keys(parsed).length + ' fields';
+                    } catch (e) {
+                        rawFieldsDisplay = 'N/A';
+                    }
+                }
+
+                return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${record.id || '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.student_name)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.hall_ticket_no)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.certificate_no)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.branch)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.exam_type)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.exam_month_year)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${record.total_marks !== null && record.total_marks !== undefined ? record.total_marks : '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${record.total_credits !== null && record.total_credits !== undefined ? record.total_credits : '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${record.sgpa !== null && record.sgpa !== undefined ? record.sgpa : '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${record.cgpa !== null && record.cgpa !== undefined ? record.cgpa : '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${formatDate(record.date_of_issue)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.university)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.college)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.course)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.medium)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.pass_status)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.aggregate)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${escapeHtml(record.achievement)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300" title="${escapeHtml(typeof record.raw_extracted_fields === 'string' ? record.raw_extracted_fields : JSON.stringify(record.raw_extracted_fields || {}))}">${rawFieldsDisplay}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${formatDateTime(record.created_at)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${formatDateTime(record.updated_at)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm">
+                            <button 
+                                data-record-id="${record.id}"
+                                data-record-name="${safeRecordName}"
+                                class="delete-record-btn text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition"
+                                title="Delete record"
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Attach delete event listeners to all delete buttons
+            tableBody.querySelectorAll('.delete-record-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const recordId = parseInt(this.getAttribute('data-record-id'));
+                    const recordName = this.getAttribute('data-record-name').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                    deleteRecord(recordId, recordName);
+                });
+            });
+        }
+
+        function deleteRecord(id, studentName) {
+            if (!confirm(`Are you sure you want to delete the record for "${studentName}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            fetch('api.php?action=delete_record', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    showToast('Record deleted successfully', false);
+                    // Reload records with current search term
+                    const searchTerm = document.getElementById('search-records-input').value.trim();
+                    loadRecords(searchTerm);
+                } else {
+                    showToast(data.error || 'Failed to delete record', true);
+                }
+            })
+            .catch(error => {
+                showToast('Error deleting record: ' + error.message, true);
+            });
+        }
+
+        // Make deleteRecord available globally
+        window.deleteRecord = deleteRecord;
+
+        // CSV Download functionality
+        function downloadCSV() {
+            const searchTerm = document.getElementById('search-records-input').value.trim();
+            
+            // Use the currently loaded records if available, otherwise fetch
+            const recordsToExport = allRecords.length > 0 ? allRecords : [];
+            
+            if (recordsToExport.length === 0) {
+                // Fetch records first
+                fetch('api.php?action=get_records' + (searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.ok || !data.records) {
+                            showToast('Failed to fetch records for CSV download', true);
+                            return;
+                        }
+                        exportToCSV(data.records);
+                    })
+                    .catch(error => {
+                        showToast('Error downloading CSV: ' + error.message, true);
+                    });
+            } else {
+                exportToCSV(recordsToExport);
+            }
+        }
+
+        function exportToCSV(records) {
+            if (records.length === 0) {
+                showToast('No records to download', true);
+                return;
+            }
+
+            // Define CSV columns (excluding: file_hash, original_file_path, status, file_name, confidence)
+            const csvColumns = [
+                'id', 'student_name', 'hall_ticket_no', 'certificate_no', 'branch', 
+                'exam_type', 'exam_month_year', 'total_marks', 'total_credits', 
+                'sgpa', 'cgpa', 'date_of_issue', 'university', 'college', 'course', 
+                'medium', 'pass_status', 'aggregate', 'achievement', 
+                'raw_extracted_fields', 'created_at', 'updated_at'
+            ];
+
+            // Create CSV header
+            const headers = csvColumns.map(col => {
+                // Convert snake_case to Title Case
+                return col.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
+            });
+
+            // Create CSV rows
+            const csvRows = records.map(record => {
+                return csvColumns.map(col => {
+                    let value = record[col] || '';
+                    
+                    // Handle JSON fields
+                    if (col === 'raw_extracted_fields' && value) {
+                        try {
+                            const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+                            value = JSON.stringify(parsed);
+                        } catch (e) {
+                            value = '';
+                        }
+                    }
+                    
+                    // Convert to string and escape CSV special characters
+                    value = String(value);
+                    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                        value = '"' + value.replace(/"/g, '""') + '"';
+                    }
+                    
+                    return value;
+                });
+            });
+
+            // Combine header and rows
+            const csvContent = [
+                headers.join(','),
+                ...csvRows.map(row => row.join(','))
+            ].join('\n');
+
+            // Create blob and download
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `records_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast(`CSV file downloaded successfully (${records.length} records)`, false);
+        }
+
+        // Download CSV button click
+        document.getElementById('download-csv-btn').addEventListener('click', downloadCSV);
+
+        // Search functionality
+        const searchInput = document.getElementById('search-records-input');
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.trim();
+            
+            // Debounce search
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadRecords(searchTerm);
+            }, 300);
+        });
+
+        // Refresh button
+        document.getElementById('refresh-records-btn').addEventListener('click', function() {
+            const searchTerm = document.getElementById('search-records-input').value.trim();
+            loadRecords(searchTerm);
+        });
+
+        // Load records when manage page is shown
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                const pageId = this.getAttribute('data-page');
+                if (pageId === 'manage') {
+                    setTimeout(() => {
+                        const searchTerm = document.getElementById('search-records-input').value.trim();
+                        loadRecords(searchTerm);
+                    }, 100);
+                }
+            });
+        });
+
+        // Logout functionality
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = 'logout.php';
+                }
+            });
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load dashboard stats (total count and monthly data)
+            loadDashboardStats();
+            
+            // Simulate a successful action
+            setTimeout(() => {
+                showToast('Dashboard loaded successfully!');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
